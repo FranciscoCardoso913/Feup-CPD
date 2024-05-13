@@ -3,35 +3,26 @@ package server.services;
 import server.database.Database;
 import server.database.models.User;
 
-import java.util.LinkedList;
-import java.util.Queue;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.PrintWriter;
 
 public class RegisterService {
-    private Queue<User> requests;
     private Database db;
-    private boolean process;
     public RegisterService(Database db){
-        requests = new LinkedList<>();
         this.db = db;
-        this.process = true;
-        Thread thread = new Thread(() -> {
-            processRequests();
-        });
-
-        // Start the thread
-        thread.start();
     }
-    public void addRequest(User user){
-        requests.add(user);
-    }
-    public void finishProcess(){
-        this.process = false;
-    }
-    public void processRequests(){
-        while (this.process){
-            if (!this.requests.isEmpty()){
-                db.register(requests.poll());
-            }
+    public String registerUser (PrintWriter out, BufferedReader in) throws IOException {
+        String username = "";
+        while (true) {
+            out.println("Insert your username:");
+            username = in.readLine();
+            if(db.findUserByName(username) != null) out.println("Username already taken");
+            else break;
         }
+        out.println("Insert your password:");
+        String pass = in.readLine();
+        db.register(new User(username, pass,0));
+        return "Register done with success";
     }
 }

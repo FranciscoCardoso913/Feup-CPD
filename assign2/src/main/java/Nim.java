@@ -26,7 +26,6 @@ public class Nim {
         // Update the state
         coins -= coinsTaken;
 
-        
         currentPlayer = (currentPlayer + 1) % nPlayers;
         return getRemainingCoins();
     }

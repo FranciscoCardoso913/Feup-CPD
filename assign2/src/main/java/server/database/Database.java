@@ -35,7 +35,7 @@ public class Database {
             String line;
             while ((line = reader.readLine()) != null) {
                 String[] fields = line.split(",");
-                User user = new User(fields[0], fields[1]);
+                User user = new User(fields[0], fields[1], Integer.parseInt(fields[2]));
                 this.users.add(user);
             }
         } catch (IOException e) {
@@ -53,16 +53,24 @@ public class Database {
     public void save(){
         try (FileWriter writer = new FileWriter(this.dbPath)) {
             for(User user : this.users){
-                writer.append(user.getName());
-                writer.append(",");
-                writer.append(user.getPassword());
-                writer.append("\n");
+                writer.append(user.getName())
+                        .append(",")
+                        .append(user.getPassword())
+                        .append(",")
+                        .append(Integer.toString(user.getScore()))
+                        .append("\n");
             }
             System.out.println("Data written to CSV successfully.");
         } catch (IOException e) {
             System.out.println("An error occurred while writing to the CSV file.");
             e.printStackTrace();
         }
+    }
 
+    public User findUserByName(String name){
+        return users.stream()
+                .filter(u -> u.getName().equals(name))
+                .findFirst()
+                .orElse(null);
     }
 }

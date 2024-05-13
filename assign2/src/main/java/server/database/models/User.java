@@ -4,9 +4,12 @@ import java.util.Objects;
 public class User {
     private String name;
     private String password;
-    public User(String name , String password){
+    private int score;
+
+    public User(String name, String password, int score){
         this.name = name;
         this.password = password;
+        this.score = score;
     }
 
     public String getName(){
@@ -14,6 +17,12 @@ public class User {
     }
     public String getPassword() {
         return this.password;
+    }
+    public int getScore() {
+        return this.score;
+    }
+    public void changeScore(int delta){
+        this.score += delta;
     }
 
     public boolean login( String password ) {
