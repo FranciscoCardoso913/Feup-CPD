@@ -1,6 +1,6 @@
 package server.database;
 
-import server.database.models.Student;
+import server.database.models.User;
 
 import java.io.*;
 import java.util.HashSet;
@@ -8,12 +8,12 @@ import java.util.Set;
 
 public class Database {
     private final String dbPath;
-    private Set<Student> users;
+    private Set<User> users;
     public Database(){
 
         this.dbPath = "src/main/java/server/database/db.csv";
 
-        this.users = new HashSet<Student>();
+        this.users = new HashSet<User>();
 
         File file = new File(this.dbPath);
 
@@ -35,8 +35,8 @@ public class Database {
             String line;
             while ((line = reader.readLine()) != null) {
                 String[] fields = line.split(",");
-                Student student = new Student(fields[0], fields[1]);
-                this.users.add(student);
+                User user = new User(fields[0], fields[1]);
+                this.users.add(user);
             }
         } catch (IOException e) {
             System.out.println("An error occurred while reading the CSV file.");
@@ -44,15 +44,15 @@ public class Database {
         }
     }
 
-    public boolean register(String name , String password) {
+    public boolean register(User user) {
         Integer size = this.users.size();
-        this.users.add(new Student( name, password));
+        this.users.add(user);
         return !size.equals(this.users.size());
     }
 
     public void save(){
         try (FileWriter writer = new FileWriter(this.dbPath)) {
-            for(Student user : this.users){
+            for(User user : this.users){
                 writer.append(user.getName());
                 writer.append(",");
                 writer.append(user.getPassword());

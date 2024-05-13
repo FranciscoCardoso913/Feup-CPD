@@ -1,10 +1,10 @@
 package server.database.models;
 import java.util.Objects;
 
-public class Student {
+public class User {
     private String name;
     private String password;
-    public Student(String name , String password){
+    public User(String name , String password){
         this.name = name;
         this.password = password;
     }
@@ -29,7 +29,7 @@ public class Student {
     public boolean equals(Object obj) {
         if (this == obj) return true;
         if (obj == null || getClass() != obj.getClass()) return false;
-        Student myObject = (Student) obj;
+        User myObject = (User) obj;
         return Objects.equals(name, myObject.name);
     }
 }
