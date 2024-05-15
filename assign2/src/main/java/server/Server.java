@@ -1,7 +1,8 @@
 package server;
 
 import server.database.Database;
-import server.services.Q;
+import server.services.ConcurrentQueue;
+import server.services.RankedQueue;
 import server.services.SimpleQueue;
 
 import java.io.*;
@@ -11,16 +12,14 @@ public class Server {
 
     private Database db;
     private final int port;
-    private final int mode;
-    private final Q<ClientHandler> clientQueue;
+    private final ConcurrentQueue<ClientHandler> clientQueue;
 
     public Server(int port, int mode){
         this.port = port;
-        this.mode = mode;
         this.clientQueue = switch (mode) {
-            case 0 -> new SimpleQueue<>();
-            case 1 -> new SimpleQueue<>();
-            default -> new SimpleQueue<>();
+            case 0 -> new SimpleQueue(3);
+            case 1 -> new RankedQueue(3);
+            default -> throw new IllegalStateException("Unexpected value: " + mode);
         };
     }
 
@@ -45,6 +44,7 @@ public class Server {
             try {
                 thread.join();
             } catch(InterruptedException e) {}
+            // this.clientQueue.has(1);
         }
     }
 }

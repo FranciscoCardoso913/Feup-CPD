@@ -12,10 +12,10 @@ import java.io.PrintWriter;
 import java.net.Socket;
 
 public class ClientHandler implements Runnable {
-    private final Socket clientSocket;
+    private Socket clientSocket;
     private final RegisterService registerService;
     private final AuthService authService;
-    public final User user = new User();
+    private final User user = new User();
     private long sessionStartTime = System.currentTimeMillis();
 
 
@@ -31,6 +31,18 @@ public class ClientHandler implements Runnable {
 
     public void updateSessionStartTime() {
         sessionStartTime = System.currentTimeMillis();
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setSocket(Socket clientSocket) {
+        this.clientSocket = clientSocket;
+    }
+
+    public Socket getSocket() {
+        return clientSocket;
     }
 
     public String readMessage(BufferedReader in) throws IOException {
@@ -56,7 +68,7 @@ public class ClientHandler implements Runnable {
                 default -> "Invalid option\0";
             };
 
-            System.out.println(result + "for " + user.getName());
+            System.out.println(result + " for " + user.getName());
             out.println(result);
 
             out.close();
