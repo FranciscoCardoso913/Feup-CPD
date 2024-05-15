@@ -14,26 +14,29 @@ public class AuthService {
         this.db = db;
     }
 
-    public User authUser(PrintWriter out, BufferedReader in) throws IOException {
+    public String authUser(PrintWriter out, BufferedReader in, User user) throws IOException {
+        System.out.println("Authenticating");
         String username;
         String password;
 
-        out.println("Insert your username:");   // TODO: class 'InputProvider'
+        out.println("Insert your username:\0");
         username = in.readLine();
-        out.println("Insert your password:");
+        out.println("Insert your password:\0");
         password = in.readLine();
 
-        User user = db.findUserByName(username);
+        User tmpUser = db.findUserByName(username);
 
-        if (user == null) {
-            out.println("Username doesn't exist");
-            return null;
+        if (tmpUser == null) {
+            out.println();
+            return "Username doesn't exist\0";
         }
 
-        if (!user.login(password)) {
-            out.println("Login failed: incorrect username or password");
-            return null;
+        if (!tmpUser.login(password)) {
+            return "Login failed: incorrect username or password\0";
         }
-        return user;
+        user.setName(tmpUser.getName());
+        user.setPassword(tmpUser.getPassword());
+        user.setScore(tmpUser.getScore());
+        return "Login successful\0";
     }
 }
