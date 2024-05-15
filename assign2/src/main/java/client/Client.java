@@ -41,7 +41,7 @@ public class Client {
         String serverMsg;
         while (true) {
             serverMsg = readServerMsg(in);
-            System.out.println(serverMsg);
+            System.out.print(serverMsg);
             userInput = stdIn.readLine();
             if(userInput!=null && userInput.equals("quit")) break;
             out.println(userInput);

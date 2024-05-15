@@ -49,14 +49,14 @@ class ClientHandler implements Runnable {
         try {
             PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
             BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-            out.println("[1]Login\n[2]Register\nChoose an option:\n\0");
+            out.println("[1]Login\n[2]Register\nChoose an option:\0");
 
             String inputLine =readMessage(in);
             String result = switch (inputLine) {
-                case "1" -> "Login";
+                case "1" -> "Login\0";
                 case "2" -> this.registerService.registerUser(out,in);
-                case "quit" -> "User quited";
-                default -> "Invalid option";
+                case "quit" -> "User quited\0";
+                default -> "Invalid option\0";
             };
             System.out.println(result);
             out.println(result);
