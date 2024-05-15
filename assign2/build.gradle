@@ -1,3 +1,6 @@
+plugins {
+    id 'application'
+}
 apply plugin: 'java'
 
 repositories {
@@ -5,6 +8,16 @@ repositories {
 }
 
 dependencies {
-    implementation group: 'com.googlecode.json-simple', name: 'json-simple', version: '1.1.1'
     implementation 'com.opencsv:opencsv:5.5.2'
 }
+
+
+
+// Define the main class of your application
+application {
+    mainClass = 'Main'  // Replace with your actual main class
+}
+
+sourceCompatibility = JavaVersion.VERSION_21
+targetCompatibility = JavaVersion.VERSION_21
+

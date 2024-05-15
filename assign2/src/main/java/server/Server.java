@@ -59,6 +59,7 @@ class ClientHandler implements Runnable {
                 default -> "Invalid option";
             };
             System.out.println(result);
+            out.println(result);
             out.close();
             in.close();
             clientSocket.close();

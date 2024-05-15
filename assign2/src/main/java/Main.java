@@ -6,9 +6,8 @@ import java.io.IOException;
 
 public class Main {
     public static void main(String[] args) throws IOException {
-
         System.out.println("Hello, Gradle!");
-        if(args[1].equals( "server")) new Server().main();
+        if(args[0].equals( "server")) new Server().main();
         else new Client().main();
     }
 }

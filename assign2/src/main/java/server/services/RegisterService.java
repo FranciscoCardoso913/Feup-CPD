@@ -15,14 +15,15 @@ public class RegisterService {
     public String registerUser (PrintWriter out, BufferedReader in) throws IOException {
         String username = "";
         while (true) {
-            out.println("Insert your username:");
+            out.println("Insert your username:\0");
             username = in.readLine();
             if(db.findUserByName(username) != null) out.println("Username already taken");
             else break;
         }
-        out.println("Insert your password:");
+        out.println("Insert your password:\0");
         String pass = in.readLine();
-        db.register(new User(username, pass,0));
-        return "Register done with success";
+        boolean res = db.register(new User(username, pass,0));
+        if(res) db.save();
+        return "Register done with success\0";
     }
 }

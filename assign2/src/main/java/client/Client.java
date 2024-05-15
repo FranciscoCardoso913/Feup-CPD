@@ -13,8 +13,19 @@ public class Client {
         String serverOut;
         while (true) {
             serverOut = in.readLine();
-            if(serverOut.equals("\0")) break;
+            boolean end = false;
+            if(serverOut!=null ){
+                char[] charArray = serverOut.toCharArray();
+                for (char c : charArray) {
+                    if (c == '\0') {
+                        end= true;
+                        break;
+                    }
+                }
+            }
             serverMsg += '\n' + serverOut;
+            if(end) break;
+
         }
         return serverMsg;
     }
@@ -32,9 +43,11 @@ public class Client {
             serverMsg = readServerMsg(in);
             System.out.println(serverMsg);
             userInput = stdIn.readLine();
+            if(userInput!=null && userInput.equals("quit")) break;
             out.println(userInput);
-            if( userInput.equals("quit")) break;
+
         }
+        System.out.println("Closing");
         out.close();
         in.close();
         stdIn.close();
