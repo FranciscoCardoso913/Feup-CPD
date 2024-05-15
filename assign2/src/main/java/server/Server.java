@@ -24,12 +24,10 @@ public class Server {
         };
     }
 
-    public ClientHandler addClientHandler(Socket clientSocket){
+    public void addClientHandler(Socket clientSocket){
         ClientHandler ch = new ClientHandler(clientSocket, db);
-        System.out.println("addClientHandler...");
+        ch.run();
         this.clientQueue.push(ch);
-        System.out.println(clientQueue.isEmpty());
-        return ch;
     }
 
     public void main() throws IOException {
@@ -42,13 +40,11 @@ public class Server {
             System.out.println("Client connected.");
 
             // Start a new thread to handle the client
-            // Thread thread = new Thread(() -> addClientHandler(clientSocket));
-            Thread thread = new Thread(new ClientHandler(clientSocket, db));
+            Thread thread = new Thread(() -> addClientHandler(clientSocket));
             thread.start();
             try {
                 thread.join();
             } catch(InterruptedException e) {}
-            System.out.println(clientQueue.isEmpty());
         }
     }
 }
