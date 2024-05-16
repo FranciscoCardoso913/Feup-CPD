@@ -7,26 +7,40 @@ import server.services.SimpleQueue;
 
 import java.io.*;
 import java.net.*;
+import java.util.List;
 
 public class Server {
 
     private Database db;
     private final int port;
     private final ConcurrentQueue<ClientHandler> clientQueue;
+    static int numberPlayers = 1;
 
     public Server(int port, int mode){
         this.port = port;
         this.clientQueue = switch (mode) {
-            case 0 -> new SimpleQueue(3);
-            case 1 -> new RankedQueue(3);
+            case 0 -> new SimpleQueue(numberPlayers);
+            case 1 -> new RankedQueue(numberPlayers);
             default -> throw new IllegalStateException("Unexpected value: " + mode);
         };
     }
 
-    public void addClientHandler(Socket clientSocket){
+    public void addClientHandler(Socket clientSocket) throws IOException {
         ClientHandler ch = new ClientHandler(clientSocket, db);
         ch.run();
         this.clientQueue.push(ch);
+    }
+
+    public void addGame() {
+        if(this.clientQueue.has(numberPlayers)){
+            List<ClientHandler> clients = clientQueue.popMultiple(numberPlayers);
+            clients.get(0).out.println("Hello\0");
+            Thread thread = new Thread(new GameHandler(clients));
+            thread.start();
+        }
+        System.out.println("In queue: ");
+        System.out.print(this.clientQueue.size());
+        System.out.println();
     }
 
     public void main() throws IOException {
@@ -39,12 +53,19 @@ public class Server {
             System.out.println("Client connected.");
 
             // Start a new thread to handle the client
-            Thread thread = new Thread(() -> addClientHandler(clientSocket));
+            Thread thread = new Thread(() -> {
+                try {
+                    addClientHandler(clientSocket);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            });
             thread.start();
             try {
                 thread.join();
             } catch(InterruptedException e) {}
-            // this.clientQueue.has(1);
+
+            // addGame();
         }
     }
 }

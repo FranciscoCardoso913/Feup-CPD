@@ -37,6 +37,6 @@ public class AuthService {
         user.setName(tmpUser.getName());
         user.setPassword(tmpUser.getPassword());
         user.setScore(tmpUser.getScore());
-        return "Login successful\0";
+        return "Login successful!\n \0";
     }
 }

@@ -69,6 +69,10 @@ public class SimpleQueue extends ConcurrentQueue<ClientHandler> {
 
     @Override
     public boolean has(int n) {
-        return queue.size() > n;
+        return queue.size() >= n;
+    }
+
+    public int size() {
+        return queue.size();
     }
 }

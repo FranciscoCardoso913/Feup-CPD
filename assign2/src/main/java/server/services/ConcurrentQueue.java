@@ -19,4 +19,6 @@ public abstract class ConcurrentQueue<T> {
     public abstract boolean isEmpty();
 
     public abstract boolean has(int n);
+
+    public abstract int size();
 }

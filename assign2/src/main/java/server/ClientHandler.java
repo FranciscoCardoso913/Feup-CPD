@@ -17,12 +17,22 @@ public class ClientHandler implements Runnable {
     private final AuthService authService;
     private final User user = new User();
     private long sessionStartTime = System.currentTimeMillis();
+    public PrintWriter out;
+    public BufferedReader in;
 
-
-    public ClientHandler(Socket clientSocket, Database db) {
+    public ClientHandler(Socket clientSocket, Database db) throws IOException {
         this.clientSocket = clientSocket;
         this.registerService = new RegisterService(db);
         this.authService = new AuthService(db);
+
+        this.out = new PrintWriter(clientSocket.getOutputStream(), true);
+        this.in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+    }
+
+    public void close() throws IOException {
+        out.close();
+        in.close();
+        clientSocket.close();
     }
 
     public long getSessionStartTime() {
@@ -37,15 +47,22 @@ public class ClientHandler implements Runnable {
         return user;
     }
 
-    public void setSocket(Socket clientSocket) {
+    public void setSocket(Socket clientSocket) throws IOException {
         this.clientSocket = clientSocket;
+
+        this.out = new PrintWriter(clientSocket.getOutputStream(), true);
+        this.in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
     }
 
     public Socket getSocket() {
         return clientSocket;
     }
 
-    public String readMessage(BufferedReader in) throws IOException {
+    public void writeMessage(String message) {
+        out.println(message + "\0");
+    }
+
+    public String readMessage() throws IOException {
         String inputLine;
 
         while ((inputLine = in.readLine()) == null) {}
@@ -56,11 +73,8 @@ public class ClientHandler implements Runnable {
 
     public void run() {
         try {
-            PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
-            BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-            out.println("[1]Login\n[2]Register\nChoose an option:\0");
-
-            String inputLine = readMessage(in);
+            writeMessage("[1]Login\n[2]Register\nChoose an option:");
+            String inputLine = readMessage();
             String result = switch (inputLine) {
                 case "1" -> this.authService.authUser(out, in, this.user);
                 case "2" -> this.registerService.registerUser(out, in, this.user);
@@ -70,10 +84,6 @@ public class ClientHandler implements Runnable {
 
             System.out.println(result + " for " + user.getName());
             out.println(result);
-
-            out.close();
-            in.close();
-            clientSocket.close();
         } catch (IOException e) {
             e.printStackTrace();
         }

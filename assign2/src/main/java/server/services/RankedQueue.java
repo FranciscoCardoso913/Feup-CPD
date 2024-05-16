@@ -33,4 +33,9 @@ public class RankedQueue extends ConcurrentQueue<ClientHandler> {
     public boolean has(int n) {
         return false;
     }
+
+    @Override
+    public int size() {
+        return queue.size();
+    }
 }
