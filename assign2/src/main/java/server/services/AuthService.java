@@ -1,5 +1,7 @@
 package server.services;
 
+import message.IO;
+import message.MessageType;
 import server.database.Database;
 import server.database.models.User;
 
@@ -19,9 +21,9 @@ public class AuthService {
         String username;
         String password;
 
-        out.println("Insert your username:\0");
+        IO.writeMessage(out, "Insert your username:", MessageType.REQUEST);
         username = in.readLine();
-        out.println("Insert your password:\0");
+        IO.writeMessage(out, "Insert your username:", MessageType.REQUEST);
         password = in.readLine();
 
         User tmpUser = db.findUserByName(username);

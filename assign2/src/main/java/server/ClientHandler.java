@@ -60,7 +60,6 @@ public class ClientHandler implements Runnable {
 
     public String readMessage() throws IOException {
         String inputLine;
-
         while ((inputLine = in.readLine()) == null) {}
 
         System.out.println("Client: " + inputLine);
@@ -69,7 +68,7 @@ public class ClientHandler implements Runnable {
 
     public void run() {
         try {
-            IO.writeMessage(out,"[1]Login\n[2]Register\nChoose an option:", MessageType.MSG);
+            IO.writeMessage(out,"[1]Login\n[2]Register\nChoose an option:", MessageType.REQUEST);
             String inputLine = readMessage();
             String result = switch (inputLine) {
                 case "1" -> this.authService.authUser(out, in, this.user);
@@ -79,7 +78,7 @@ public class ClientHandler implements Runnable {
             };
 
             System.out.println(result + " for " + user.getName());
-            out.println(result);
+            IO.writeMessage(out, result, MessageType.MSG);
         } catch (IOException e) {
             e.printStackTrace();
         }

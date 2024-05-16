@@ -1,5 +1,7 @@
 package server.services;
 
+import message.IO;
+import message.MessageType;
 import server.database.Database;
 import server.database.models.User;
 
@@ -18,13 +20,13 @@ public class RegisterService {
         String username = "";
 
         while (true) {
-            out.println("Insert your username:\0");
+            IO.writeMessage(out, "Insert your username:", MessageType.REQUEST);
             username = in.readLine();
             if(db.findUserByName(username) != null) out.println("Username already taken");  //TODO: \0 ?
             else break;
         }
 
-        out.println("Insert your password:\0");
+        IO.writeMessage(out, "Insert your password:", MessageType.REQUEST);
         String pass = in.readLine();
         User tmpUser = new User(username, pass,0);
         boolean res = db.register(tmpUser);
@@ -33,6 +35,6 @@ public class RegisterService {
         user.setName(tmpUser.getName());
         user.setPassword(tmpUser.getPassword());
         user.setScore(tmpUser.getScore());
-        return "Register done with success\0";
+        return "Register done with success";
     }
 }

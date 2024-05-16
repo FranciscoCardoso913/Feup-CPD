@@ -1,5 +1,7 @@
 package server;
 
+import message.IO;
+import message.MessageType;
 import server.database.models.Nim;
 
 import java.io.IOException;
@@ -17,7 +19,7 @@ public class GameHandler implements Runnable{
         this.clients = clients;
         System.out.println("Game started!");
         for (ClientHandler cl : clients){
-            cl.writeMessage("Game started!");
+            IO.writeMessage(cl.out,"Game started!", MessageType.MSG);
             cl.out.println("Game started!");
         }
     }
@@ -29,7 +31,7 @@ public class GameHandler implements Runnable{
         while (run) {
             try{
                 currentPlayer = clients.get(game.getCurrentPlayer());
-                currentPlayer.writeMessage("Write number of coins: ");
+                IO.writeMessage(currentPlayer.out, "Write number of coins: ", MessageType.REQUEST);
                 String inputLine = currentPlayer.readMessage();
                 int move = Integer.parseInt(inputLine);
                 int reminder_coins = game.move(move);

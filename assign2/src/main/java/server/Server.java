@@ -48,21 +48,47 @@ public class Server {
     }
 
     public void main() throws IOException {
+        ServerSocket serverSocket = new ServerSocket(port);
+        System.out.println("Server started. Waiting for clients...");
+        this.db = new Database();
+
+        while (true) {
+            Socket clientSocket = serverSocket.accept();
+            System.out.println("Client connected.");
+
+            // Start a new thread to handle the client
+            Thread thread = new Thread(() -> {
+                try {
+                    addClientHandler(clientSocket);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+            thread.start();
+            try {
+                thread.join();
+            } catch(InterruptedException e) {}
+
+            // addGame();
+        }
+    }
+
+    /*public void main() throws IOException {
 
         Thread.ofVirtual().start(() -> {
-			try {
-				handleAuth();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		});
+            try {
+                handleAuth();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
         Thread.ofVirtual().start(() -> handleGames());
         Thread saveState = new Thread(() -> db.save());
 
         Runtime.getRuntime().addShutdownHook(saveState);
-        
+
         System.out.println("Server started");
-    }
+    }*/
 
     public void handleAuth() throws IOException {
         ServerSocket serverSocket = new ServerSocket(port);
