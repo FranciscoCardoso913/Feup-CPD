@@ -1,6 +1,8 @@
 package client;
 
-import server.Server;
+import message.IO;
+import message.Message;
+import message.MessageType;
 
 import java.io.*;
 import java.net.*;
@@ -17,27 +19,6 @@ public class Client {
         this.port = port;
     }
 
-    public String readServerMsg(BufferedReader in) throws IOException {
-        String serverMsg ="";
-        String serverOut;
-        while (true) {
-            serverOut = in.readLine();
-            boolean end = false;
-            if(serverOut!=null ){
-                char[] charArray = serverOut.toCharArray();
-                for (char c : charArray) {
-                    if (c == '\0') {
-                        end= true;
-                        break;
-                    }
-                }
-            }
-            serverMsg += '\n' + serverOut;
-            if(end) break;
-
-        }
-        return serverMsg;
-    }
 
     public void main() throws IOException {
         System.out.println("Connecting to sever");
@@ -50,11 +31,16 @@ public class Client {
         String userInput;
         String serverMsg;
         while (true) {
-            serverMsg = readServerMsg(in);
-            System.out.print(serverMsg);
-            userInput = stdIn.readLine();
-            if(userInput!=null && userInput.equals("quit")) break;
-            out.println(userInput);
+            Message response = IO.readServerMsg(in);
+            serverMsg = response.getBody();
+
+            if(response.isType(MessageType.CMD) && serverMsg.equals("QUIT")) break;
+            else if(response.isType(MessageType.MSG)) System.out.println(serverMsg);
+            else if(response.isType(MessageType.REQUEST)){
+                System.out.print(serverMsg);
+                userInput = stdIn.readLine();
+                out.println(userInput);
+            }
 
         }
         System.out.println("Closing");

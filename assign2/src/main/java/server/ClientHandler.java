@@ -4,7 +4,7 @@ import server.database.Database;
 import server.database.models.User;
 import server.services.AuthService;
 import server.services.RegisterService;
-
+import message.*;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -58,10 +58,6 @@ public class ClientHandler implements Runnable {
         return clientSocket;
     }
 
-    public void writeMessage(String message) {
-        out.println(message + "\0");
-    }
-
     public String readMessage() throws IOException {
         String inputLine;
 
@@ -73,7 +69,7 @@ public class ClientHandler implements Runnable {
 
     public void run() {
         try {
-            writeMessage("[1]Login\n[2]Register\nChoose an option:");
+            IO.writeMessage(out,"[1]Login\n[2]Register\nChoose an option:", MessageType.MSG);
             String inputLine = readMessage();
             String result = switch (inputLine) {
                 case "1" -> this.authService.authUser(out, in, this.user);

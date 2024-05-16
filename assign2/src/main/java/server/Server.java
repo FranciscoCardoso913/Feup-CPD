@@ -8,15 +8,18 @@ import server.services.SimpleQueue;
 import java.io.*;
 import java.net.*;
 import java.util.List;
+import java.lang.Thread;
+
 
 public class Server {
 
     private Database db;
     private final int port;
     private final ConcurrentQueue<ClientHandler> clientQueue;
-    static int numberPlayers = 1;
+    static int numberPlayers = 3;
 
     public Server(int port, int mode){
+        this.db = new Database();
         this.port = port;
         this.clientQueue = switch (mode) {
             case 0 -> new SimpleQueue(numberPlayers);
@@ -28,6 +31,7 @@ public class Server {
     public void addClientHandler(Socket clientSocket) throws IOException {
         ClientHandler ch = new ClientHandler(clientSocket, db);
         ch.run();
+        // TODO
         this.clientQueue.push(ch);
     }
 
@@ -44,9 +48,24 @@ public class Server {
     }
 
     public void main() throws IOException {
+
+        Thread.ofVirtual().start(() -> {
+			try {
+				handleAuth();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		});
+        Thread.ofVirtual().start(() -> handleGames());
+        Thread saveState = new Thread(() -> db.save());
+
+        Runtime.getRuntime().addShutdownHook(saveState);
+        
+        System.out.println("Server started");
+    }
+
+    public void handleAuth() throws IOException {
         ServerSocket serverSocket = new ServerSocket(port);
-        System.out.println("Server started. Waiting for clients...");
-        this.db = new Database();
 
         while (true) {
             Socket clientSocket = serverSocket.accept();
@@ -61,11 +80,12 @@ public class Server {
                 }
             });
             thread.start();
-            try {
-                thread.join();
-            } catch(InterruptedException e) {}
+        }
+    }
 
-            // addGame();
+    public void handleGames() {
+        while (true) {
+            addGame();
         }
     }
 }

@@ -28,15 +28,15 @@ public class AuthService {
 
         if (tmpUser == null) {
             out.println();
-            return "Username doesn't exist\0";
+            return "Username doesn't exist";
         }
 
         if (!tmpUser.login(password)) {
-            return "Login failed: incorrect username or password\0";
+            return "Login failed: incorrect username or password";
         }
         user.setName(tmpUser.getName());
         user.setPassword(tmpUser.getPassword());
         user.setScore(tmpUser.getScore());
-        return "Login successful!\n \0";
+        return "Login successful!\n";
     }
 }
