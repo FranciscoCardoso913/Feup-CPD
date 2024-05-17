@@ -14,7 +14,7 @@ import java.lang.Thread;
 public class Server {
 
     private Database db;
-    private final ConcurrentQueue<ClientHandler> clientQueue;
+    private volatile ConcurrentQueue<ClientHandler> clientQueue;
     static int numberPlayers = 2;
     ServerSocket serverSocket = null;
 
@@ -47,6 +47,9 @@ public class Server {
     }
 
     public void addGame() {
+        // System.out.println("Here out!");
+        // System.out.println(clientQueue.size());
+
         if(this.clientQueue.has(numberPlayers)){
             List<ClientHandler> clients = clientQueue.popMultiple(numberPlayers);
             Thread.ofVirtual().start(new GameHandler(clients));

@@ -23,7 +23,7 @@ public class GameHandler implements Runnable{
             .append("\t- The pile has " + game.getRemainingCoins() + " coins!\n")
             .append("\t- You can take 1 or 2 coins in each of your turns.\n")
             .append("\t- The player who takes the last coin wins!\n")
-            .append("\t- There are " + numberPlayers + "in this gamen");
+            .append("\t- There are " + numberPlayers + " in this gamen");
         
         for (ClientHandler cl : clients){
             IO.writeMessage(cl.out, initMessage.toString(), MessageType.MSG);
@@ -55,6 +55,10 @@ public class GameHandler implements Runnable{
             }
         }
 
+        handleEndGame();
+    }
+
+    public void handleEndGame() {
         for (int i = 0; i < numberPlayers; i++){
             ClientHandler cl = clients.get(i);
             User currUser = cl.getUser();
@@ -67,7 +71,6 @@ public class GameHandler implements Runnable{
                 currUser.changeScore(3);
             }
             IO.writeMessage(cl.out, "New rating: " + currUser.getScore(), MessageType.MSG);
-            
         }
     }
 }

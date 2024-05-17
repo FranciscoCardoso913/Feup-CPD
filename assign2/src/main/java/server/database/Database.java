@@ -51,8 +51,6 @@ public class Database {
     }
 
     public void save(){
-        System.out.println("\n\nOn shutdown!\n\n");
-
         try (FileWriter writer = new FileWriter(this.dbPath)) {
             for(User user : this.users){
                 writer.append(user.getName())

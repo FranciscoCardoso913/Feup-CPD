@@ -14,6 +14,9 @@ public class Nim {
         int upperBound = this.nPlayers * 8 + 7;
         this.coins = lowerBound + random.nextInt(upperBound - lowerBound + 1);
         this.currentPlayer = 0;
+
+        // Clean
+        this.coins = 5;
     }
 
     // Method to make a move

@@ -23,7 +23,7 @@ public class AuthService {
 
         IO.writeMessage(out, "Insert your username:", MessageType.REQUEST);
         username = in.readLine();
-        IO.writeMessage(out, "Insert your username:", MessageType.REQUEST);
+        IO.writeMessage(out, "Insert your password:", MessageType.REQUEST);
         password = in.readLine();
 
         User tmpUser = db.findUserByName(username);
