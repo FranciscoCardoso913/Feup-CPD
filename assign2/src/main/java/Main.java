@@ -42,7 +42,7 @@ public class Main {
                 return;
             }
             new Server(port, mode).main();
-        } catch (NumberFormatException e) {
+        } catch (NumberFormatException | InterruptedException e) {
             System.out.println(usage);
         }
     }

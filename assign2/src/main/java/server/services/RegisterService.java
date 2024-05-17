@@ -22,7 +22,7 @@ public class RegisterService {
         while (true) {
             IO.writeMessage(out, "Insert your username:", MessageType.REQUEST);
             username = in.readLine();
-            if(db.findUserByName(username) != null) out.println("Username already taken");  //TODO: \0 ?
+            if(db.findUserByName(username) != null) IO.writeMessage(out, "Username already taken", MessageType.MSG);
             else break;
         }
 

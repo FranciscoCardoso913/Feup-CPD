@@ -20,7 +20,6 @@ public class GameHandler implements Runnable{
         System.out.println("Game started!");
         for (ClientHandler cl : clients){
             IO.writeMessage(cl.out,"Game started!", MessageType.MSG);
-            cl.out.println("Game started!");
         }
     }
 

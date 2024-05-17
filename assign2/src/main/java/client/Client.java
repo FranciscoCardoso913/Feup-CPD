@@ -40,6 +40,7 @@ public class Client {
                 System.out.print(serverMsg);
                 userInput = stdIn.readLine();
                 out.println(userInput);
+                // IO.writeMessage(out, userInput, MessageType.MSG);
             }
 
         }

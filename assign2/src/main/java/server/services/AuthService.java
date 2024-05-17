@@ -29,7 +29,6 @@ public class AuthService {
         User tmpUser = db.findUserByName(username);
 
         if (tmpUser == null) {
-            out.println();
             return "Username doesn't exist";
         }
 

@@ -2,9 +2,10 @@ package server.database.models;
 import java.util.Objects;
 
 public class User {
-    private String name = "";
-    private String password = "";
+    private String name = null;
+    private String password = null;
     private int score = 0;
+    private boolean isLogedIn = false;
 
     public User(String name, String password, int score){
         this.name = name;
@@ -46,8 +47,8 @@ public class User {
         return this.password.equals(password);
     }
 
-    public boolean notEmpty(){
-        return !this.name.isEmpty();
+    public boolean isEmpty(){
+        return this.name == null;
     }
 
     @Override
