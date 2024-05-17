@@ -21,7 +21,7 @@ public class Client {
 
 
     public void main() throws IOException {
-        System.out.println("Connecting to sever");
+        System.out.println("Connecting to server");
         Socket socket = new Socket(host, port);
         System.out.println("Connected");
         PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
@@ -34,15 +34,15 @@ public class Client {
             Message response = IO.readServerMsg(in);
             serverMsg = response.getBody();
 
-            if(response.isType(MessageType.CMD) && serverMsg.equals("QUIT")) break;
+            if(response.isType(MessageType.CMD) && serverMsg.trim().equals("QUIT")) {
+                break;
+            }
             else if(response.isType(MessageType.MSG)) System.out.println(serverMsg);
             else if(response.isType(MessageType.REQUEST)){
                 System.out.print(serverMsg);
                 userInput = stdIn.readLine();
                 out.println(userInput);
-                // IO.writeMessage(out, userInput, MessageType.MSG);
             }
-
         }
         System.out.println("Closing");
         out.close();

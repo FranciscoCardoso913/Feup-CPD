@@ -4,7 +4,9 @@ import message.IO;
 import message.MessageType;
 import server.database.models.Nim;
 import server.database.models.User;
+import server.services.ConcurrentQueue;
 
+import java.io.IOException;
 import java.util.List;
 
 import static server.Server.numberPlayers;
@@ -13,9 +15,12 @@ public class GameHandler implements Runnable{
 
     Nim game = new Nim(numberPlayers);
     List<ClientHandler> clients;
+    ConcurrentQueue<ClientHandler> clientQueue;
 
-    public GameHandler(List<ClientHandler> clients) {
+    public GameHandler(List<ClientHandler> clients, ConcurrentQueue<ClientHandler> clientQueue) {
         this.clients = clients;
+        this.clientQueue = clientQueue;
+
         System.out.println("Game started!");
         
         StringBuilder initMessage = new StringBuilder()
@@ -55,10 +60,21 @@ public class GameHandler implements Runnable{
             }
         }
 
-        handleEndGame();
+        updateRanks();
+
+        for (ClientHandler cl : clients){
+            Thread.ofVirtual().start(() -> {
+                try {
+                    checkPlayAgain(cl);
+                } catch (IOException e) {
+                    System.out.println("Error while getting input");
+                    throw new RuntimeException(e);
+                }
+            });
+        }
     }
 
-    public void handleEndGame() {
+    public void updateRanks() {
         for (int i = 0; i < numberPlayers; i++){
             ClientHandler cl = clients.get(i);
             User currUser = cl.getUser();
@@ -71,6 +87,23 @@ public class GameHandler implements Runnable{
                 currUser.changeScore(3);
             }
             IO.writeMessage(cl.out, "New rating: " + currUser.getScore(), MessageType.MSG);
+        }
+    }
+
+    public void checkPlayAgain(ClientHandler cl) throws IOException {
+        while (true) {
+            IO.writeMessage(cl.out, "Do you want to play again? (Y/n)", MessageType.REQUEST);
+            String res = cl.readMessage();
+
+            if (res.equals("y") || res.equals("Y") || res.isEmpty()) {
+                this.clientQueue.push(cl);
+                System.out.println("In queue again");
+                break;
+            } else if (res.equals("n") || res.equals("N")) {
+                IO.writeMessage(cl.out, "QUIT", MessageType.CMD);
+                System.out.println("Exited?");
+                break;
+            }
         }
     }
 }

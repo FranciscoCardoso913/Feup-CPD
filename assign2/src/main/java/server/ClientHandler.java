@@ -15,7 +15,7 @@ public class ClientHandler implements Runnable {
     private Socket clientSocket;
     private final RegisterService registerService;
     private final AuthService authService;
-    private final User user = new User();
+    private User user = null;
     private long sessionStartTime = System.currentTimeMillis();
     public PrintWriter out;
     public BufferedReader in;
@@ -42,6 +42,8 @@ public class ClientHandler implements Runnable {
     public void updateSessionStartTime() {
         sessionStartTime = System.currentTimeMillis();
     }
+
+    public void setUser(User user) {this.user = user;}
 
     public User getUser() {
         return user;
@@ -71,7 +73,7 @@ public class ClientHandler implements Runnable {
             IO.writeMessage(out,"[1]Login\n[2]Register\nChoose an option:", MessageType.REQUEST);
             String inputLine = readMessage();
             String result = switch (inputLine) {
-                case "1" -> this.authService.authUser(out, in, this.user);
+                case "1" -> this.authService.authUser(out, in, this);
                 case "2" -> this.registerService.registerUser(out, in, this.user);
                 case "quit" -> "User quited\0";
                 default -> "Invalid option\0";

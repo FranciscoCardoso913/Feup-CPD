@@ -47,12 +47,9 @@ public class Server {
     }
 
     public void addGame() {
-        // System.out.println("Here out!");
-        // System.out.println(clientQueue.size());
-
         if(this.clientQueue.has(numberPlayers)){
             List<ClientHandler> clients = clientQueue.popMultiple(numberPlayers);
-            Thread.ofVirtual().start(new GameHandler(clients));
+            Thread.ofVirtual().start(new GameHandler(clients, this.clientQueue));
         }
     }
 

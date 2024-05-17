@@ -2,6 +2,7 @@ package server.services;
 
 import message.IO;
 import message.MessageType;
+import server.ClientHandler;
 import server.database.Database;
 import server.database.models.User;
 
@@ -16,7 +17,7 @@ public class AuthService {
         this.db = db;
     }
 
-    public String authUser(PrintWriter out, BufferedReader in, User user) throws IOException {
+    public String authUser(PrintWriter out, BufferedReader in, ClientHandler ch) throws IOException {
         System.out.println("Authenticating");
         String username;
         String password;
@@ -35,9 +36,9 @@ public class AuthService {
         if (!tmpUser.login(password)) {
             return "Login failed: incorrect username or password";
         }
-        user.setName(tmpUser.getName());
-        user.setPassword(tmpUser.getPassword());
-        user.setScore(tmpUser.getScore());
+
+        ch.setUser(db.findUserByName(username));
+
         return "Login successful!\n";
     }
 }
