@@ -5,10 +5,13 @@ import server.database.models.User;
 import java.io.*;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class Database {
     private final String dbPath;
     private Set<User> users;
+    private final ReentrantLock lock = new ReentrantLock();
+
     public Database(){
 
         this.dbPath = "src/main/java/server/database/db.csv";
@@ -46,11 +49,23 @@ public class Database {
 
     public boolean register(User user) {
         Integer size = this.users.size();
-        this.users.add(user);
+        lock.lock();
+        try {
+            System.out.println("Entrouuu registroooo");
+            Thread.sleep(3000);
+            System.out.println("Vai saiiiir registroooo");
+            this.users.add(user);
+        } catch (InterruptedException e) {
+            System.out.println("Oh nao");
+        }
+        finally {
+            lock.unlock();
+        }
         return !size.equals(this.users.size());
     }
 
     public void save(){
+        lock.lock();
         try (FileWriter writer = new FileWriter(this.dbPath)) {
             for(User user : this.users){
                 writer.append(user.getName())
@@ -64,6 +79,8 @@ public class Database {
         } catch (IOException e) {
             System.out.println("An error occurred while writing to the CSV file.");
             e.printStackTrace();
+        } finally {
+            lock.unlock();
         }
     }
 
