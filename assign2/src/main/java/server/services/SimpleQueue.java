@@ -38,7 +38,7 @@ public class SimpleQueue extends ConcurrentQueue<ClientHandler> {
 
     @Override
     public List<ClientHandler> popMultiple(int n) {
-        // TODO: Check this
+        // TODO: Check this, se tiver 1-2 pessoas nao ativos.
         if (!this.has(this.numberPlayers)) return null;
         List<ClientHandler> list = new ArrayList<>();
 

@@ -6,7 +6,6 @@ import java.util.Optional;
 import java.util.LinkedList;
 import java.util.Queue;
 import server.ClientHandler;
-import server.database.models.User;
 
 public class RankedQueue extends ConcurrentQueue<ClientHandler> {
 
