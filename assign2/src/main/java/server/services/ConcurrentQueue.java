@@ -26,4 +26,6 @@ public abstract class ConcurrentQueue<T> {
     public abstract void forEach(Consumer<ClientHandler> action);
 
     public abstract int size();
+
+    public abstract void remove(ClientHandler ch);
 }

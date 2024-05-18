@@ -90,4 +90,9 @@ public class SimpleQueue extends ConcurrentQueue<ClientHandler> {
     public int size() {
         return queue.size();
     }
+
+    @Override
+    public void remove(ClientHandler ch) {
+        this.queue.remove(ch);
+    }
 }

@@ -44,4 +44,9 @@ public class RankedQueue extends ConcurrentQueue<ClientHandler> {
     public int size() {
         return queue.size();
     }
+
+    @Override
+    public void remove(ClientHandler ch) {
+        
+    }
 }

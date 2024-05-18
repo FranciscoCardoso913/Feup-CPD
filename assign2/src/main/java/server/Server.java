@@ -18,9 +18,11 @@ public class Server {
     private Database db;
     private volatile ConcurrentQueue<ClientHandler> clientQueue;
     static int numberPlayers = 2;
+    static int pingPeriod = 10000;
     ServerSocket serverSocket = null;
     ExecutorService gameThreadPool;
     ExecutorService clientThreadPool;
+    private int CLIENT_TIMEOUT = 20000;
     
     public Server(int port, int mode){
         try{
@@ -114,6 +116,28 @@ public class Server {
     }
 
     public void pingActiveClients() {
+        while(true){
+            System.out.println("[PING] All clients");
+
+            this.clientQueue.forEach((clientHandler) -> {
+                clientHandler.checkConnection();
+                if (System.currentTimeMillis() - clientHandler.getLastSeen() >= CLIENT_TIMEOUT) {
+                    this.clientQueue.remove(clientHandler); // TODO Use iterators for higher efficiency
+                    System.out.println("Removed user");
+                    System.out.println("Queue size: " + this.clientQueue.size());
+                }
+            });
+            try {
+                Thread.sleep(pingPeriod);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                System.out.println("Ping thread interrupted, stopping.");
+                break;
+            }
+        }
+        
+        
+        /*
         while (!Thread.currentThread().isInterrupted()) {
             this.clientQueue.forEach((clientHandler) -> {
                 clientHandler.checkConnection();
@@ -121,12 +145,12 @@ public class Server {
             });
     
             try {
-                Thread.sleep(10000); // Sleep for 10 seconds before pinging again
+                Thread.sleep(10000);
             } catch (InterruptedException e) {
-                Thread.currentThread().interrupt(); // Restore interruption status
+                Thread.currentThread().interrupt();
                 System.out.println("Ping thread interrupted, stopping.");
                 break;
             }
-        }
+        }*/
     }
 }

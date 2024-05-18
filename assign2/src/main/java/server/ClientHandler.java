@@ -106,7 +106,6 @@ public class ClientHandler implements Runnable {
 
             if (res != null) {
                 updateLastSeen();
-                System.out.println("Updated last seen");
             }
 		} catch (IOException e) {
             System.out.println("IOException when pinging client");
