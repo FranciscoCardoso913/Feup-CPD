@@ -17,7 +17,9 @@ public class ClientHandler implements Runnable {
     private final AuthService authService;
     private User user = null;
     private long sessionStartTime;
+    
     private long lastSeen;
+    private String reconnectionMSG;
     public PrintWriter out;
     public BufferedReader in;
 
@@ -30,6 +32,7 @@ public class ClientHandler implements Runnable {
         this.in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
         this.sessionStartTime = System.currentTimeMillis();
         this.lastSeen = System.currentTimeMillis();
+        this.reconnectionMSG = "Reconnected, waiting in queue";
     }
 
     public void close() throws IOException {
@@ -65,6 +68,7 @@ public class ClientHandler implements Runnable {
 
         this.out = new PrintWriter(clientSocket.getOutputStream(), true);
         this.in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+        IO.writeMessage(out, this.reconnectionMSG, MessageType.MSG);
     }
 
     public Socket getSocket() {
@@ -97,7 +101,7 @@ public class ClientHandler implements Runnable {
         }
     }
 
-    public void checkConnection() {
+    public boolean checkConnection() {
         IO.writeMessage(this.out, "PING", MessageType.PING);
         String res;
 		
@@ -106,10 +110,17 @@ public class ClientHandler implements Runnable {
 
             if (res != null) {
                 updateLastSeen();
+                return true;
             }
 		} catch (IOException e) {
             System.out.println("IOException when pinging client");
 			e.printStackTrace();
 		}
+        
+        return false;
+    }
+
+    public void setReconnectionMSG(String msg){
+        this.reconnectionMSG = msg;
     }
 }

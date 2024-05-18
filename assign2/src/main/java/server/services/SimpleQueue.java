@@ -6,6 +6,8 @@ import java.util.Optional;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
+import java.util.Iterator;
 
 import server.ClientHandler;
 
@@ -38,21 +40,24 @@ public class SimpleQueue extends ConcurrentQueue<ClientHandler> {
         }
     }
 
+    // TODO Add tolerance to disconnected players?
     @Override
     public List<ClientHandler> popMultiple(int n) {
         // TODO: Check this, se tiver 1-2 pessoas nao ativos.
-        if (!this.has(this.numberPlayers)) return null;
+        if (!this.has(this.PLAYER_PER_GAME)) return null;
         List<ClientHandler> list = new ArrayList<>();
 
         try {
             this.queueLock.lock();
+            int i = 0;
+            for (ClientHandler ch: this.queue) {
+                if (ch.checkConnection()) {
+                    list.add(ch);
+                    i++;
+                    this.queue.remove(ch);
+                }
 
-            for (int i = 0; i < n; i++) {
-                ClientHandler item = queue.poll();
-
-                if (item == null) return null;
-
-                list.add(item);
+                if (i >= n) break;
             }
 
         } catch (Exception exception) {
@@ -71,7 +76,16 @@ public class SimpleQueue extends ConcurrentQueue<ClientHandler> {
 
     @Override
     public boolean has(int n) {
-        return queue.size() >= n;
+        int connected = 0;
+
+        for (ClientHandler ch: this.queue) {
+            if (ch.checkConnection())
+                connected++;
+            if (connected >= n)
+                return true;
+        }
+
+        return false;
     }
 
     @Override
@@ -92,7 +106,39 @@ public class SimpleQueue extends ConcurrentQueue<ClientHandler> {
     }
 
     @Override
-    public void remove(ClientHandler ch) {
-        this.queue.remove(ch);
+    public boolean remove(ClientHandler ch) {
+        return this.queue.remove(ch);
     }
+
+    public int getConnected() {
+        int connected = 0;
+
+        for (ClientHandler ch: this.queue) {
+            if (ch.checkConnection())
+                connected++;
+        }
+
+        return connected;
+    }
+
+    @Override
+    public void removeIf(Predicate<ClientHandler> condition) {
+        try {
+            queueLock.lock();
+            
+            Iterator<ClientHandler> iterator = queue.iterator();
+            while (iterator.hasNext()) {
+                ClientHandler clientHandler = iterator.next();
+                if (condition.test(clientHandler)) {
+                    iterator.remove();
+                }
+            }
+        } catch (Exception exception) {
+            exception.printStackTrace();
+        } finally {
+            queueLock.unlock();
+        }
+    }
+    
+    
 }

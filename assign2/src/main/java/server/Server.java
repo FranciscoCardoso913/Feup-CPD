@@ -1,44 +1,64 @@
 package server;
 
 import java.util.concurrent.Executors;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.ExecutorService;
+
+import config.ConfigLoader;
 import server.database.Database;
 import server.services.ConcurrentQueue;
-import server.services.RankedQueue;
+// import server.services.RankedQueue;
 import server.services.SimpleQueue;
+import server.GameHandler;
 
 import java.io.*;
 import java.net.*;
 import java.util.List;
 import java.lang.Thread;
+import java.util.HashSet;
+import java.util.Set;
 
 
 public class Server {
 
     private Database db;
     private volatile ConcurrentQueue<ClientHandler> clientQueue;
-    static int numberPlayers = 2;
-    static int pingPeriod = 10000;
+    private volatile Set<ClientHandler> clientsInGame;
     ServerSocket serverSocket = null;
     ExecutorService gameThreadPool;
     ExecutorService clientThreadPool;
-    private int CLIENT_TIMEOUT = 20000;
     
-    public Server(int port, int mode){
-        try{
+    // Default values
+    int CLIENT_TIMEOUT;
+    int PLAYER_PER_GAME;
+    int PLAY_TIMEOUT;
+    int PING_PERIOD;
+    
+    public Server(ConfigLoader config, int mode){
+        try {
+
+            int port = Integer.parseInt(config.get("PORT"));
             this.serverSocket = new ServerSocket(port);
+            this.CLIENT_TIMEOUT = Integer.parseInt(config.get("CLIENT_TIMEOUT"));
+            this.PLAYER_PER_GAME = Integer.parseInt(config.get("PLAYER_PER_GAME"));
+            this.PING_PERIOD = Integer.parseInt(config.get("PING_PERIOD"));
+            this.PLAY_TIMEOUT = Integer.parseInt(config.get("PLAY_TIMEOUT"));
+
+            this.db = new Database(config.get("DB_PATH"));
+            this.clientQueue = switch (mode) {
+                case 0 -> new SimpleQueue(PLAYER_PER_GAME);
+                // case 1 -> new RankedQueue(PLAYER_PER_GAME);
+                default -> throw new IllegalStateException("Unexpected value: " + mode);
+            };
+
+            this.gameThreadPool = Executors.newVirtualThreadPerTaskExecutor();
+            this.clientThreadPool = Executors.newVirtualThreadPerTaskExecutor();
+
+            this.clientsInGame = new HashSet<>();
+
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-        this.db = new Database();
-        this.clientQueue = switch (mode) {
-            case 0 -> new SimpleQueue(numberPlayers);
-            case 1 -> new RankedQueue(numberPlayers);
-            default -> throw new IllegalStateException("Unexpected value: " + mode);
-        };
-        this.gameThreadPool = Executors.newVirtualThreadPerTaskExecutor();
-        this.clientThreadPool = Executors.newVirtualThreadPerTaskExecutor();
     }
 
     public void addClientHandler(Socket clientSocket) throws IOException {
@@ -46,18 +66,40 @@ public class Server {
         ch.run();
         // TODO
         if (!ch.getUser().isEmpty()){
-            this.clientQueue.push(ch);
+            boolean inGame = false;
+            for(ClientHandler cl : this.clientsInGame){
+                if(cl.getUser().equals(ch.getUser())){
+                    inGame = true;
+                    cl.setSocket(ch.getSocket());
+                }
+            }
+            if(!inGame){
+            
+                this.clientQueue.push(ch);
+                
+                System.out.print("In queue: ");
+                System.out.print(this.clientQueue.size());
+                System.out.println();
+            }
         }
-        
-        System.out.print("In queue: ");
-        System.out.print(this.clientQueue.size());
-        System.out.println();
     }
 
+    // TODO: Maybe keep number of connected players for efficiency
     public void addGame() {
-        if(this.clientQueue.has(numberPlayers)){
-            List<ClientHandler> clients = clientQueue.popMultiple(numberPlayers);
-            gameThreadPool.execute(new GameHandler(clients, this.clientQueue)); 
+        if (this.clientQueue.has(PLAYER_PER_GAME)) {
+            List<ClientHandler> clients = clientQueue.popMultiple(PLAYER_PER_GAME);
+            if (clients == null) return;
+            
+            gameThreadPool.execute(() -> {
+                ReentrantLock setClientsInGameLock = new ReentrantLock();
+                setClientsInGameLock.lock();
+                this.clientsInGame.addAll(clients);
+                setClientsInGameLock.unlock();
+                (new GameHandler(clients, this.clientQueue, this.PLAYER_PER_GAME, this.PLAY_TIMEOUT)).run();
+                setClientsInGameLock.lock();
+                this.clientsInGame.removeAll(clients);
+                setClientsInGameLock.unlock();
+            });
         }
     }
 
@@ -119,38 +161,36 @@ public class Server {
         while(true){
             System.out.println("[PING] All clients");
 
-            this.clientQueue.forEach((clientHandler) -> {
+            long currTime = System.currentTimeMillis();
+
+            // Ping
+            this.clientQueue.removeIf(clientHandler -> {
                 clientHandler.checkConnection();
-                if (System.currentTimeMillis() - clientHandler.getLastSeen() >= CLIENT_TIMEOUT) {
-                    this.clientQueue.remove(clientHandler); // TODO Use iterators for higher efficiency
-                    System.out.println("Removed user");
-                    System.out.println("Queue size: " + this.clientQueue.size());
-                }
+                return currTime - clientHandler.getLastSeen() >= CLIENT_TIMEOUT;
             });
+            
+
+            // TODO: remover de set?
+
+            System.out.println("Queue size: " + this.clientQueue.size());
+
+            // this.clientQueue.forEach((clientHandler) -> {
+            //     clientHandler.checkConnection();
+            //     if (System.currentTimeMillis() - clientHandler.getLastSeen() >= CLIENT_TIMEOUT) {
+            //         this.clientQueue.remove(clientHandler); // TODO Use iterators for higher efficiency
+            //         System.out.println("Removed user");
+            //         System.out.println("Queue size: " + this.clientQueue.size());
+            //     }
+            // });
+
+            // Sleep 
             try {
-                Thread.sleep(pingPeriod);
+                Thread.sleep(PING_PERIOD);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 System.out.println("Ping thread interrupted, stopping.");
                 break;
             }
         }
-        
-        
-        /*
-        while (!Thread.currentThread().isInterrupted()) {
-            this.clientQueue.forEach((clientHandler) -> {
-                clientHandler.checkConnection();
-                System.out.println("pingActiveClients() - Client pinged");
-            });
-    
-            try {
-                Thread.sleep(10000);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                System.out.println("Ping thread interrupted, stopping.");
-                break;
-            }
-        }*/
     }
 }

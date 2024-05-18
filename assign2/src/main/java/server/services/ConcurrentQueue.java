@@ -3,16 +3,16 @@ package server.services;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
-
+import java.util.function.Predicate;
 import server.ClientHandler;
 
-public abstract class ConcurrentQueue<T> {
 
+public abstract class ConcurrentQueue<T> {
     protected final ReentrantLock queueLock = new ReentrantLock();
-    protected int numberPlayers = 0;
+    protected int PLAYER_PER_GAME = 0;
 
     ConcurrentQueue(int n) {
-        this.numberPlayers = n;
+        this.PLAYER_PER_GAME = n;
     }
 
     public abstract void push(T el);
@@ -27,5 +27,8 @@ public abstract class ConcurrentQueue<T> {
 
     public abstract int size();
 
-    public abstract void remove(ClientHandler ch);
+    public abstract boolean remove(ClientHandler ch);
+
+    public abstract void removeIf(Predicate<ClientHandler> condition);
+
 }

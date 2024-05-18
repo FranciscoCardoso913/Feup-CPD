@@ -10,6 +10,7 @@ public class IO {
         out.println( type.getType() + "\n" + msg + "\0");
     }
 
+
     public static Message readServerMsg(BufferedReader in) throws IOException {
         String serverMsg = "";
         MessageType header = null;

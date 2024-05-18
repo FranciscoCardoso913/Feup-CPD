@@ -12,9 +12,9 @@ public class Database {
     private Set<User> users;
     private final ReentrantLock lock = new ReentrantLock();
 
-    public Database(){
+    public Database(String dbPath){
 
-        this.dbPath = "src/main/java/server/database/db.csv";
+        this.dbPath = dbPath;
 
         this.users = new HashSet<User>();
 
