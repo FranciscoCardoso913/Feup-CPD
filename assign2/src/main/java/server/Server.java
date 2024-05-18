@@ -69,13 +69,14 @@ public class Server {
         });
         Thread gameThread = Thread.ofVirtual().start(() -> handleGames());
         Thread cleanUpThread = new Thread(() -> cleanUp());
-
+        Thread pingClientsThread = Thread.ofVirtual().start(() -> pingActiveClients()); // this::pingActiveClients
         Runtime.getRuntime().addShutdownHook(cleanUpThread);
 
         System.out.println("Server started");
 
         authThread.join();
         gameThread.join();
+        pingClientsThread.join();
     }
 
     public void handleAuth() throws IOException {
@@ -110,5 +111,22 @@ public class Server {
         }
         this.gameThreadPool.shutdown();
         this.clientThreadPool.shutdown();
+    }
+
+    public void pingActiveClients() {
+        while (!Thread.currentThread().isInterrupted()) {
+            this.clientQueue.forEach((clientHandler) -> {
+                clientHandler.checkConnection();
+                System.out.println("pingActiveClients() - Client pinged");
+            });
+    
+            try {
+                Thread.sleep(10000); // Sleep for 10 seconds before pinging again
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt(); // Restore interruption status
+                System.out.println("Ping thread interrupted, stopping.");
+                break;
+            }
+        }
     }
 }

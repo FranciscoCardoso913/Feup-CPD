@@ -100,7 +100,7 @@ public class GameHandler implements Runnable{
                 System.out.println("In queue again");
                 break;
             } else if (res.equals("n") || res.equals("N")) {
-                IO.writeMessage(cl.out, "QUIT", MessageType.CMD);
+                IO.writeMessage(cl.out, "QUIT", MessageType.QUIT);
                 System.out.println("Exited?");
                 break;
             }

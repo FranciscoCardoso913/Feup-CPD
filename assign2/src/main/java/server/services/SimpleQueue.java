@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.function.Consumer;
+
 import server.ClientHandler;
 
 public class SimpleQueue extends ConcurrentQueue<ClientHandler> {
@@ -72,6 +74,19 @@ public class SimpleQueue extends ConcurrentQueue<ClientHandler> {
         return queue.size() >= n;
     }
 
+    @Override
+    public void forEach(Consumer<ClientHandler> action) {
+        try {
+            queueLock.lock();
+            queue.forEach(action);
+        } catch (Exception exception) {
+            exception.printStackTrace();
+        } finally {
+            queueLock.unlock();
+        }
+    }
+
+    @Override
     public int size() {
         return queue.size();
     }

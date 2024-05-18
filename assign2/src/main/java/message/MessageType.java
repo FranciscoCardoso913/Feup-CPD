@@ -3,7 +3,10 @@ package message;
 public enum MessageType {
     MSG("MSG"),
     REQUEST("REQUEST"),
-    CMD("CMD");
+    CMD("CMD"),
+    QUIT("QUIT"),
+    PING("PING"),
+    ACK("ACK");
 
     private final String type;
 

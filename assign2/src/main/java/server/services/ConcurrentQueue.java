@@ -2,6 +2,9 @@ package server.services;
 
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Consumer;
+
+import server.ClientHandler;
 
 public abstract class ConcurrentQueue<T> {
 
@@ -19,6 +22,8 @@ public abstract class ConcurrentQueue<T> {
     public abstract boolean isEmpty();
 
     public abstract boolean has(int n);
+
+    public abstract void forEach(Consumer<ClientHandler> action);
 
     public abstract int size();
 }

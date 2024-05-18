@@ -16,7 +16,8 @@ public class ClientHandler implements Runnable {
     private final RegisterService registerService;
     private final AuthService authService;
     private User user = null;
-    private long sessionStartTime = System.currentTimeMillis();
+    private long sessionStartTime;
+    private long lastSeen;
     public PrintWriter out;
     public BufferedReader in;
 
@@ -27,6 +28,8 @@ public class ClientHandler implements Runnable {
 
         this.out = new PrintWriter(clientSocket.getOutputStream(), true);
         this.in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+        this.sessionStartTime = System.currentTimeMillis();
+        this.lastSeen = System.currentTimeMillis();
     }
 
     public void close() throws IOException {
@@ -47,6 +50,14 @@ public class ClientHandler implements Runnable {
 
     public User getUser() {
         return user;
+    }
+    
+    public long getLastSeen() {
+        return this.lastSeen;
+    }
+
+    public void updateLastSeen() {
+        this.lastSeen = System.currentTimeMillis();
     }
 
     public void setSocket(Socket clientSocket) throws IOException {
@@ -84,5 +95,22 @@ public class ClientHandler implements Runnable {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void checkConnection() {
+        IO.writeMessage(this.out, "PING", MessageType.PING);
+        String res;
+		
+        try {
+			res = this.in.readLine();
+
+            if (res != null) {
+                updateLastSeen();
+                System.out.println("Updated last seen");
+            }
+		} catch (IOException e) {
+            System.out.println("IOException when pinging client");
+			e.printStackTrace();
+		}
     }
 }

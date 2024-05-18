@@ -19,7 +19,6 @@ public class Client {
         this.port = port;
     }
 
-
     public void main() throws IOException {
         System.out.println("Connecting to server");
         Socket socket = new Socket(host, port);
@@ -34,15 +33,20 @@ public class Client {
             Message response = IO.readServerMsg(in);
             serverMsg = response.getBody();
             
-            if(response.isType(MessageType.CMD) && serverMsg.trim().equals("QUIT")) {
+            if (response.isType(MessageType.QUIT)) {
                 break;
             }
-            else if(response.isType(MessageType.MSG)) System.out.println(serverMsg);
-            else if(response.isType(MessageType.REQUEST)){
+            else if (response.isType(MessageType.MSG)) {
+                System.out.println(serverMsg);
+            }
+            else if (response.isType(MessageType.REQUEST)){
                 System.out.print(serverMsg);
                 userInput = stdIn.readLine();
                 out.println(userInput);
-            }
+            } 
+            else if (response.isType(MessageType.PING)) {
+                out.println("ping");
+            } 
         }
         System.out.println("Closing");
         out.close();
@@ -51,4 +55,3 @@ public class Client {
         socket.close();
     }
 }
-
