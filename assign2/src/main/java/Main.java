@@ -57,6 +57,7 @@ public class Main {
         try {
             String host = config.get("HOSTNAME");
             int port = Integer.parseInt(config.get("CLIENT_PORT"));
+
             new Client(host, port).main();
         } catch (NumberFormatException e) {
             System.out.println(usage);
