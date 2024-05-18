@@ -5,11 +5,14 @@ import server.database.models.User;
 import server.services.AuthService;
 import server.services.RegisterService;
 import message.*;
+import utils.Wrapper;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.concurrent.*;
 
 public class ClientHandler implements Runnable {
     private Socket clientSocket;
@@ -85,20 +88,53 @@ public class ClientHandler implements Runnable {
 
     public void run() {
         try {
-            IO.writeMessage(out,"[1]Login\n[2]Register\nChoose an option:", MessageType.REQUEST);
-            String inputLine = readMessage();
-            String result = switch (inputLine) {
-                case "1" -> this.authService.authUser(out, in, this);
-                case "2" -> this.registerService.registerUser(out, in, this.user);
-                case "quit" -> "User quited\0";
-                default -> "Invalid option\0";
-            };
-
-            System.out.println(result + " for " + user.getName());
-            IO.writeMessage(out, result, MessageType.MSG);
-        } catch (IOException e) {
+            boolean result = false;
+            while(!result) {
+                IO.writeMessage(out, "[1]Login\n[2]Register\nChoose an option:", MessageType.REQUEST);
+                String inputLine = readMessage();
+                result = switch (inputLine) {
+                    case "1" -> authService();
+                    case "2" -> registerService();
+                    case "quit" -> quit();
+                    default -> invalidOption();
+                };
+            }
+        } catch (Exception e) {
+            try {
+                this.quit();
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
             e.printStackTrace();
         }
+    }
+
+    public boolean authService() throws Exception {
+            User res = Wrapper.withTimeOut(
+                    () -> this.authService.authUser(out, in),
+                    40,
+                    ()-> this.authService.handleTimeOut(out)
+            );
+            this.setUser(res);
+            return res != null;
+    }
+    public boolean registerService() throws Exception {
+        User res = Wrapper.withTimeOut(
+                ()->this.registerService.registerUser(out, in),
+                40,
+                ()-> this.registerService.handleTimeOut(out)
+        );
+        this.setUser(res);
+        return res!=null;
+    }
+    public boolean quit() throws IOException {
+        IO.writeMessage(this.out, "QUIT", MessageType.QUIT);
+        this.close();
+        return true;
+    }
+    public boolean invalidOption(){
+        IO.writeMessage(this.out, "Invalid Option", MessageType.MSG);
+        return false;
     }
 
     public boolean checkConnection() {

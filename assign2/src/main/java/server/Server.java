@@ -10,6 +10,7 @@ import server.services.ConcurrentQueue;
 // import server.services.RankedQueue;
 import server.services.SimpleQueue;
 import server.GameHandler;
+import utils.Wrapper;
 
 import java.io.*;
 import java.net.*;
@@ -24,6 +25,8 @@ public class Server {
     private Database db;
     private volatile ConcurrentQueue<ClientHandler> clientQueue;
     private volatile Set<ClientHandler> clientsInGame;
+
+    protected final ReentrantLock gameLock = new ReentrantLock();
     ServerSocket serverSocket = null;
     ExecutorService gameThreadPool;
     ExecutorService clientThreadPool;
@@ -85,19 +88,17 @@ public class Server {
 
     // TODO: Maybe keep number of connected players for efficiency
     public void addGame() {
+        //System.out.println(this.clientQueue.has(PLAYER_PER_GAME));
         if (this.clientQueue.has(PLAYER_PER_GAME)) {
+            System.out.println("dfsdjf");
             List<ClientHandler> clients = clientQueue.popMultiple(PLAYER_PER_GAME);
             if (clients == null) return;
+            System.out.println("Game:" + clients.size());
             
             gameThreadPool.execute(() -> {
-                ReentrantLock setClientsInGameLock = new ReentrantLock();
-                setClientsInGameLock.lock();
-                this.clientsInGame.addAll(clients);
-                setClientsInGameLock.unlock();
+                Wrapper.withLock(()->this.clientsInGame.addAll(clients), this.gameLock);
                 (new GameHandler(clients, this.clientQueue, this.PLAYER_PER_GAME, this.PLAY_TIMEOUT)).run();
-                setClientsInGameLock.lock();
-                this.clientsInGame.removeAll(clients);
-                setClientsInGameLock.unlock();
+                Wrapper.withLock(()-> clients.forEach(this.clientsInGame::remove), this.gameLock);
             });
         }
     }

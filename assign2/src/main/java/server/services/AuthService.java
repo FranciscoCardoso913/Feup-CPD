@@ -12,6 +12,7 @@ import java.io.PrintWriter;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 public class AuthService {
     private final Database db;
@@ -22,23 +23,13 @@ public class AuthService {
         this.db = db;
     }
 
-    public String authUser(PrintWriter out, BufferedReader in, ClientHandler ch) throws IOException {
-        ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+    public User authUser(PrintWriter out, BufferedReader in){
+
         System.out.println("Authenticating");
         int attemps = 0;
         String username;
         String password;
 
-        Runnable timeoutTask = () -> {
-            IO.writeMessage(out, "Login timed out. Please try again.", MessageType.MSG);
-            try {
-                ch.getSocket().close();  // close socket
-            } catch (IOException e) {
-                System.err.println("Error closing socket after timeout.");
-                e.printStackTrace();
-        }
-        };
-        scheduler.schedule(timeoutTask, this.loginTimeOut, TimeUnit.SECONDS);
 
         try {
             while (attemps < MAX_ATTEMPS) {
@@ -63,15 +54,18 @@ public class AuthService {
                     IO.writeMessage(out, "Incorrect username or password", MessageType.MSG);
                     continue;
                 }
-    
-                ch.setUser(tmpUser);
-    
-                return "Login successful!\n";
+                IO.writeMessage(out, "Login successful!", MessageType.MSG);
+                return tmpUser;
             }
-        } finally {
-            scheduler.shutdownNow();  // Ensure the scheduler is stopped when done
+        }
+        catch (Exception e){
+            e.printStackTrace();
         }
 
         return null;
+    }
+    public void handleTimeOut(PrintWriter out){
+        System.out.println("Time out");
+        IO.writeMessage(out, "Login timed out. Please try again.", MessageType.MSG);
     }
 }

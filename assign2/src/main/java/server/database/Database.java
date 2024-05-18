@@ -51,12 +51,7 @@ public class Database {
         Integer size = this.users.size();
         lock.lock();
         try {
-            System.out.println("Entrouuu registroooo");
-            Thread.sleep(3000);
-            System.out.println("Vai saiiiir registroooo");
             this.users.add(user);
-        } catch (InterruptedException e) {
-            System.out.println("Oh nao");
         }
         finally {
             lock.unlock();
