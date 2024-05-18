@@ -44,6 +44,7 @@ public class SimpleQueue extends ConcurrentQueue<ClientHandler> {
     // TODO Add tolerance to disconnected players?
     @Override
     public List<ClientHandler> popMultiple(int n) {
+        System.out.println(n);
         // TODO: Check this, se tiver 1-2 pessoas nao ativos.
         System.out.println("Queue:"+ !this.has(this.PLAYER_PER_GAME));
         if (!this.has(this.PLAYER_PER_GAME)) return null;
@@ -52,17 +53,21 @@ public class SimpleQueue extends ConcurrentQueue<ClientHandler> {
         try {
             this.queueLock.lock();
             int i = 0;
+            System.out.println("Fuck:"+this.queue.size());
             for (ClientHandler ch: this.queue) {
                 System.out.println("Boas");
                 if (ch.checkConnection()) {
                     System.out.println("Boas con");
                     list.add(ch);
                     i++;
-                    this.queue.remove(ch);
+                    //this.queue.remove(ch);
                 }
+                System.out.println("Queue size:"+ this.queue.size());
 
                 if (i >= n) break;
             }
+            this.queue.removeAll(list);
+            System.out.println("I:" + this .queue.size());
             System.out.println("Queue:" + list.size());
 
         } catch (Exception exception) {
