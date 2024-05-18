@@ -37,26 +37,25 @@ public class Server {
     public Server(ConfigLoader config, int mode){
         try {
 
-            int port = Integer.parseInt(config.get("PORT"));
+            int port = Integer.parseInt(config.get("SERVER_PORT"));
             this.serverSocket = new ServerSocket(port);
             this.CLIENT_TIMEOUT = Integer.parseInt(config.get("CLIENT_TIMEOUT"));
             this.PLAYER_PER_GAME = Integer.parseInt(config.get("PLAYER_PER_GAME"));
             this.PING_PERIOD = Integer.parseInt(config.get("PING_PERIOD"));
             this.PLAY_TIMEOUT = Integer.parseInt(config.get("PLAY_TIMEOUT"));
-
             this.db = new Database(config.get("DB_PATH"));
             this.clientQueue = switch (mode) {
                 case 0 -> new SimpleQueue(PLAYER_PER_GAME);
                 // case 1 -> new RankedQueue(PLAYER_PER_GAME);
                 default -> throw new IllegalStateException("Unexpected value: " + mode);
             };
-
             this.gameThreadPool = Executors.newVirtualThreadPerTaskExecutor();
             this.clientThreadPool = Executors.newVirtualThreadPerTaskExecutor();
 
             this.clientsInGame = new HashSet<>();
 
         } catch (Exception e) {
+
             e.printStackTrace();
         }
     }

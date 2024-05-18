@@ -25,13 +25,11 @@ public class Main {
         }
 
         ConfigLoader config = new ConfigLoader();
-        System.out.println(config.get("MODE"));
-        config.get("Mode");
 
         switch (args[0]) {
             case "-s":
-                if (args.length == 2 && (args[2].equals("1") || args[2].equals("2")))
-                    startServer(config, args[2]);
+                if (args.length == 2 && (args[1].equals("1") || args[1].equals("2")))
+                    startServer(config, args[1]);
                 else
                     startServer(config, null);
                 break;
@@ -47,10 +45,10 @@ public class Main {
     private static void startServer(ConfigLoader config, String arg_mode) throws IOException {
         try {
             String mode = arg_mode != null ? arg_mode : config.get("MODE");
-            new Server(config, Integer.parseInt(mode)).main();
+            int m = Integer.parseInt(mode);
+            new Server(config, m ).main();
         } catch (NumberFormatException | InterruptedException e) {
-            System.out.println(e);
-            System.out.println("ola");
+            e.printStackTrace();
             System.out.println(usage);
         }
     }

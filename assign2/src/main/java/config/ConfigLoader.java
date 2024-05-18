@@ -18,17 +18,13 @@ public class ConfigLoader {
     }
 
     private void loadProperties() {
-        String resourceName = "/main/config.properties";
-        //Path path = Paths.get(getClass().getClassLoader().getResource("config.properties").toURI());
         File file = new File("src/config.properties");
-        if(!file.exists()) System.out.println("boas");
+        if(!file.exists())  {
+            System.out.println("Failed to load config.properties");
+            printDebugInfo();
+            return;
+        }
         try (InputStream input = new FileInputStream(file)) {
-            if (input == null) {
-                System.out.println("Failed to load " + resourceName);
-                printDebugInfo();
-                return;
-            }
-
             config.load(input);
         } catch (IOException ex) {
             ex.printStackTrace();
