@@ -33,7 +33,7 @@ public class Client {
         while (true) {
             Message response = IO.readServerMsg(in);
             serverMsg = response.getBody();
-
+            
             if(response.isType(MessageType.CMD) && serverMsg.trim().equals("QUIT")) {
                 break;
             }

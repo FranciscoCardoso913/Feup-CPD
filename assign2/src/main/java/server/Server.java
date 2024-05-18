@@ -1,5 +1,7 @@
 package server;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ExecutorService;
 import server.database.Database;
 import server.services.ConcurrentQueue;
 import server.services.RankedQueue;
@@ -17,7 +19,9 @@ public class Server {
     private volatile ConcurrentQueue<ClientHandler> clientQueue;
     static int numberPlayers = 2;
     ServerSocket serverSocket = null;
-
+    ExecutorService gameThreadPool;
+    ExecutorService clientThreadPool;
+    
     public Server(int port, int mode){
         try{
             this.serverSocket = new ServerSocket(port);
@@ -31,6 +35,8 @@ public class Server {
             case 1 -> new RankedQueue(numberPlayers);
             default -> throw new IllegalStateException("Unexpected value: " + mode);
         };
+        this.gameThreadPool = Executors.newVirtualThreadPerTaskExecutor();
+        this.clientThreadPool = Executors.newVirtualThreadPerTaskExecutor();
     }
 
     public void addClientHandler(Socket clientSocket) throws IOException {
@@ -49,7 +55,7 @@ public class Server {
     public void addGame() {
         if(this.clientQueue.has(numberPlayers)){
             List<ClientHandler> clients = clientQueue.popMultiple(numberPlayers);
-            Thread.ofVirtual().start(new GameHandler(clients, this.clientQueue));
+            gameThreadPool.execute(new GameHandler(clients, this.clientQueue)); 
         }
     }
 
@@ -79,14 +85,13 @@ public class Server {
             System.out.println("Client connected.");
 
             // Start a new thread to handle the client
-            Thread thread = new Thread(() -> {
+            this.clientThreadPool.execute(() -> {
                 try {
                     addClientHandler(clientSocket);
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
             });
-            thread.start();
         }
     }
 
@@ -103,5 +108,7 @@ public class Server {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        this.gameThreadPool.shutdown();
+        this.clientThreadPool.shutdown();
     }
 }

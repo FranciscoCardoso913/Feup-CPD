@@ -22,23 +22,29 @@ public class AuthService {
         String username;
         String password;
 
-        IO.writeMessage(out, "Insert your username:", MessageType.REQUEST);
-        username = in.readLine();
-        IO.writeMessage(out, "Insert your password:", MessageType.REQUEST);
-        password = in.readLine();
+        while (true) {
+            IO.writeMessage(out, "Insert your username:", MessageType.REQUEST);
+            username = in.readLine();
+            IO.writeMessage(out, "Insert your password:", MessageType.REQUEST);
+            password = in.readLine();
 
-        User tmpUser = db.findUserByName(username);
+            User tmpUser = db.findUserByName(username);
 
-        if (tmpUser == null) {
-            return "Username doesn't exist";
+            if (tmpUser == null) {
+                IO.writeMessage(out, "Username doesn't exist", MessageType.MSG);
+                continue;
+                // return "Username doesn't exist";
+            }
+
+            if (!tmpUser.login(password)) {
+                IO.writeMessage(out, "Incorrect username or password", MessageType.MSG);
+                continue;
+                //return "Login failed: incorrect username or password";
+            }
+
+            ch.setUser(db.findUserByName(username));
+
+            return "Login successful!\n";
         }
-
-        if (!tmpUser.login(password)) {
-            return "Login failed: incorrect username or password";
-        }
-
-        ch.setUser(db.findUserByName(username));
-
-        return "Login successful!\n";
     }
 }
