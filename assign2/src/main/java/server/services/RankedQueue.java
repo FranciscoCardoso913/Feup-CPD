@@ -65,8 +65,10 @@ public class RankedQueue extends ConcurrentQueue<ClientHandler> {
             Integer currBin = bins.get(currBinIdx);
             SimpleQueue currBinQueue = this.queue.get(bins.get(currBinIdx));
 
-            // If 
-
+            // If current queue is empty, skip
+            if (currBinQueue.isEmpty()) return null;
+            
+            // Get number of connected players
             connectedPlayers = currBinQueue.getConnected();
 
             // Find number of players of correct queue that are connected
@@ -78,7 +80,10 @@ public class RankedQueue extends ConcurrentQueue<ClientHandler> {
                 guaranteedPlayerBins.put(currBin, connectedPlayers);
             }
 
-            // Look at bins that are next to the left and right until limit is surpassed. 
+            // Get waiting time from player who waited the most from current queue
+            long longestWait = currBinQueue.getHeadWaitTime();
+
+            // Look at bins that are next to the left and right until limit is surpassed.
             do {
                 
             } while (true);
@@ -88,7 +93,6 @@ public class RankedQueue extends ConcurrentQueue<ClientHandler> {
             queueLock.unlock();
         }
         
-        //TODO: descomentar
         //return players;
     }
 

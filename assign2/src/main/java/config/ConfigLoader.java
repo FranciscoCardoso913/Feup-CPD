@@ -1,11 +1,11 @@
 package config;
 
-import java.util.Properties;
-import java.io.InputStream;
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
+import java.io.InputStream;
 import java.io.FileInputStream;
+import java.net.URL;
+import java.util.Properties;
 
 
 public class ConfigLoader {
@@ -20,8 +20,9 @@ public class ConfigLoader {
     private void loadProperties() {
         String resourceName = "/main/config.properties";
         //Path path = Paths.get(getClass().getClassLoader().getResource("config.properties").toURI());
-        File file = new File("src/main/resources/config.properties");
-        try (InputStream input = new FileInputStream("/src/main/resources/config.properties")) {
+        File file = new File("src/config.properties");
+        if(!file.exists()) System.out.println("boas");
+        try (InputStream input = new FileInputStream(file)) {
             if (input == null) {
                 System.out.println("Failed to load " + resourceName);
                 printDebugInfo();

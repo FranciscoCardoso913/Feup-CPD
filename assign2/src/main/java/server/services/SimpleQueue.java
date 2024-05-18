@@ -1,13 +1,13 @@
 package server.services;
 
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
-import java.util.LinkedList;
 import java.util.Queue;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
-import java.util.Iterator;
 
 import server.ClientHandler;
 
@@ -140,5 +140,7 @@ public class SimpleQueue extends ConcurrentQueue<ClientHandler> {
         }
     }
     
-    
+    public long getHeadWaitTime() {
+        return System.currentTimeMillis() - this.queue.peek().getSessionStartTime();
+    }
 }

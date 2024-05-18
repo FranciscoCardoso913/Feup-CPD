@@ -1,8 +1,8 @@
+import java.io.IOException;
+
 import client.Client;
 import config.ConfigLoader;
 import server.Server;
-
-import java.io.IOException;
 // import org.json.simple.*;
 
 public class Main {
@@ -25,6 +25,8 @@ public class Main {
         }
 
         ConfigLoader config = new ConfigLoader();
+        System.out.println(config.get("MODE"));
+        config.get("Mode");
 
         switch (args[0]) {
             case "-s":
