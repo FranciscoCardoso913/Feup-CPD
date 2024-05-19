@@ -1,6 +1,10 @@
 package server.database.models;
-import java.util.Objects;
+import server.Server;
+import utils.Security;
 
+import java.util.Objects;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 public class User {
     private String name = null;
     private String password = null;
@@ -15,6 +19,7 @@ public class User {
     public User(String name, String password, int score){
         this.name = name;
         this.password = password;
+
         this.score = score;
     }
     public User(){}
@@ -57,7 +62,23 @@ public class User {
      * @return True if the passwords match, false otherwise.
      */
     public boolean login( String password ) {
-        return this.password.equals(password);
+        try {
+            return this.password.equals(Security.hash(password));
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
+    /**
+     * Encrypts User password
+     */
+    public void hashPassword(){
+        try {
+            this.password = Security.hash(this.password);
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
     }
     /**
      * Checks if the user object is empty (i.e., has no name).

@@ -64,6 +64,7 @@ public class Database {
         Integer size = this.users.size();
         lock.lock();
         try {
+            user.hashPassword();
             this.users.add(user);
         } finally {
             lock.unlock();
