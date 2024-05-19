@@ -5,16 +5,19 @@ public class User {
     private String name = null;
     private String password = null;
     private int score = 0;
-    private boolean isLogedIn = false;
-
+    /**
+     * Constructor for the User class.
+     *
+     * @param name The name of the user.
+     * @param password The password of the user.
+     * @param score The score of the user.
+     */
     public User(String name, String password, int score){
         this.name = name;
         this.password = password;
         this.score = score;
     }
-
     public User(){}
-
     public String getName(){
         return this.name;
     }
@@ -38,16 +41,29 @@ public class User {
     public void setPassword(String password){
         this.password = password;
     }
-
+    /**
+     * Changes the score of the user by the specified delta.
+     *
+     * @param delta The change in score.
+     */
     public void changeScore(int delta){
         this.score += delta;
         if(this.score<0) this.score=0;
     }
-
+    /**
+     * Checks if the provided password matches the user's password.
+     *
+     * @param password The password to check.
+     * @return True if the passwords match, false otherwise.
+     */
     public boolean login( String password ) {
         return this.password.equals(password);
     }
-
+    /**
+     * Checks if the user object is empty (i.e., has no name).
+     *
+     * @return True if the user is empty, false otherwise.
+     */
     public boolean isEmpty(){
         return this.name == null;
     }

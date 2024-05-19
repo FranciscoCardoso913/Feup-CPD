@@ -35,14 +35,14 @@ public class RankedQueue extends ConcurrentQueue<ClientHandler> {
 
                 if (this.currBinIdx < 0 || this.bins.get(this.currBinIdx) > bin)
                     this.currBinIdx++;
-                
+
                 this.bins.clear();
                 this.bins.addAll(this.queue.keySet());
             }
         } finally {
             queueLock.unlock();
         }
-        
+
 
         this.queue.get(bin).push(element);
     }
@@ -63,7 +63,7 @@ public class RankedQueue extends ConcurrentQueue<ClientHandler> {
 
             // If current queue is empty, skip
             if (currBinQueue.isEmpty()) return null;
-            
+
             // Get number of connected players
             connectedPlayers = currBinQueue.getConnected();
 
@@ -135,7 +135,7 @@ public class RankedQueue extends ConcurrentQueue<ClientHandler> {
 
     @Override
     public boolean isEmpty() {
-        for (SimpleQueue sq: queue.values()) {
+        for (SimpleQueue sq : queue.values()) {
             if (!sq.isEmpty())
                 return false;
         }
@@ -149,7 +149,7 @@ public class RankedQueue extends ConcurrentQueue<ClientHandler> {
 
         try {
             queueLock.lock();
-            for (SimpleQueue sq: queue.values()) {
+            for (SimpleQueue sq : queue.values()) {
                 clients += sq.getConnected();
 
                 if (clients >= n)
@@ -164,9 +164,9 @@ public class RankedQueue extends ConcurrentQueue<ClientHandler> {
     }
 
     @Override
-    public void forEach(Consumer<ClientHandler> action){
+    public void forEach(Consumer<ClientHandler> action) {
         // TODO: Check if this needs a lock
-        for (SimpleQueue sq: queue.values()) {
+        for (SimpleQueue sq : queue.values()) {
             sq.forEach(action);
         }
     }
@@ -175,7 +175,7 @@ public class RankedQueue extends ConcurrentQueue<ClientHandler> {
     public int size() {
         int clients = 0;
 
-        for (SimpleQueue sq: queue.values()) {
+        for (SimpleQueue sq : queue.values()) {
             clients += sq.size();
         }
 
@@ -184,7 +184,7 @@ public class RankedQueue extends ConcurrentQueue<ClientHandler> {
 
     @Override
     public boolean remove(ClientHandler ch) {
-        for (SimpleQueue sq: queue.values()) {
+        for (SimpleQueue sq : queue.values()) {
             if (sq.remove(ch))
                 return true;
         }
@@ -197,7 +197,7 @@ public class RankedQueue extends ConcurrentQueue<ClientHandler> {
         try {
             queueLock.lock();
 
-            for (SimpleQueue sq: queue.values()) {
+            for (SimpleQueue sq : queue.values()) {
                 sq.removeIf(condition);
             }
         } finally {

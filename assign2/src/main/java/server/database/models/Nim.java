@@ -6,7 +6,12 @@ public class Nim {
     private int coins;
     private int currentPlayer;
     private int nPlayers;
-
+    /**
+     * Constructor for the Nim class.
+     * Initializes the game with a random number of coins within a specified range.
+     *
+     * @param nPlayers The number of players in the game.
+     */
     public Nim(int nPlayers) {
         Random random = new Random();
         this.nPlayers = nPlayers;
@@ -19,13 +24,20 @@ public class Nim {
         this.coins = 5;
     }
 
-    // Method to make a move
+    /**
+     * Method to make a move in the game.
+     *
+     * @param coinsTaken The number of coins taken by the current player.
+     * @return The number of remaining coins after the move.
+     *         Returns -1 if the move is invalid (less than 1 or more than 2 coins taken).
+     *         Returns -2 if the game is ended.
+     */
     public int move(int coinsTaken) {
         if (coinsTaken < 1 || coinsTaken > 2) {
-            return -1; // TODO: bad select.
+            return -1;
         }
         if (coinsTaken >= coins) {
-            return -2;  // TODO: end game.
+            return -2;
         }
 
         // Update the state
@@ -34,13 +46,21 @@ public class Nim {
 
         return getRemainingCoins();
     }
- 
-    // Method to get current player
+
+    /**
+     * Getter for the current player.
+     *
+     * @return The index of the current player.
+     */
     public int getCurrentPlayer() {
         return currentPlayer;
     }
 
-    // Method to get remaining coins
+    /**
+     * Getter for the remaining coins.
+     *
+     * @return The number of remaining coins in the game.
+     */
     public int getRemainingCoins() {
         return coins;
     }

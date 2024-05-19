@@ -4,13 +4,28 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 
+/**
+ * Utility class for input/output operations related to messaging.
+ */
 public class IO {
-
+    /**
+     * Writes a message to the PrintWriter.
+     *
+     * @param out  The PrintWriter object to write the message to.
+     * @param msg  The message content.
+     * @param type The type of the message (MessageType enum).
+     */
     public static void writeMessage(PrintWriter out, String msg, MessageType type) {
-        out.println( type.getType() + "\n" + msg + "\0");
+        out.println(type.getType() + "\n" + msg + "\0");
     }
 
-
+    /**
+     * Reads a message from the BufferedReader.
+     *
+     * @param in The BufferedReader object to read the message from.
+     * @return A Message object representing the read message.
+     * @throws IOException If an I/O error occurs.
+     */
     public static Message readServerMsg(BufferedReader in) throws IOException {
         String serverMsg = "";
         MessageType header = null;

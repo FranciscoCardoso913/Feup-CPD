@@ -31,18 +31,25 @@ public class Server {
     ServerSocket serverSocket = null;
     ExecutorService gameThreadPool;
     ExecutorService clientThreadPool;
-    
-    // Default values
+
+    // Env values
     int CLIENT_TIMEOUT;
     int PLAYER_PER_GAME;
     int PLAY_TIMEOUT;
     int PING_PERIOD;
 
     private ConfigLoader configLoader;
-    
-    public Server(ConfigLoader config, int mode){
+
+    /**
+     * Constructor for the Server class.
+     * Initializes the server configuration, database, and client queues.
+     *
+     * @param config The configuration loader.
+     * @param mode   The mode of operation (0 for SimpleQueue, 1 for RankedQueue).
+     */
+    public Server(ConfigLoader config, int mode) {
         try {
-            this.configLoader= config;
+            this.configLoader = config;
             int port = Integer.parseInt(config.get("SERVER_PORT"));
             this.serverSocket = new ServerSocket(port);
             this.CLIENT_TIMEOUT = Integer.parseInt(config.get("CLIENT_TIMEOUT"));
@@ -66,25 +73,30 @@ public class Server {
         }
     }
 
+    /**
+     * Adds a new client handler for the connected client socket.
+     *
+     * @param clientSocket The socket of the connected client.
+     * @throws IOException If an I/O error occurs.
+     */
     public void addClientHandler(Socket clientSocket) throws IOException {
-        ClientHandler ch = new ClientHandler(clientSocket, db, this.configLoader );
+        ClientHandler ch = new ClientHandler(clientSocket, db, this.configLoader);
         ch.run();
-        if(ch.getUser()== null) return;
+        if (ch.getUser() == null) return;
         ch.updateSessionStartTime();
-        // TODO
-        if (!ch.getUser().isEmpty()){
+        if (!ch.getUser().isEmpty()) {
             boolean inGame = false;
-            for(ClientHandler cl : this.clientsInGame){
-                if(cl.getUser().equals(ch.getUser())){
+            for (ClientHandler cl : this.clientsInGame) {
+                if (cl.getUser().equals(ch.getUser())) {
                     inGame = true;
                     cl.setSocket(ch.getSocket());
                 }
             }
-            if(!inGame){
+            if (!inGame) {
 
                 this.clientQueue.push(ch);
                 IO.writeMessage(ch.out, "Waiting in Queue for a Game!", MessageType.MSG);
-                
+
                 System.out.print("In queue: ");
                 System.out.print(this.clientQueue.size());
                 System.out.println();
@@ -92,21 +104,30 @@ public class Server {
         }
     }
 
-    // TODO: Maybe keep number of connected players for efficiency
+    /**
+     * Adds a new game if there are enough clients in the queue.
+     * Creates a new GameHandler for the clients.
+     */
     public void addGame() {
-       if (this.clientQueue.has(PLAYER_PER_GAME)) {
+        if (this.clientQueue.has(PLAYER_PER_GAME)) {
             List<ClientHandler> clients = clientQueue.popMultiple(PLAYER_PER_GAME);
             if (clients == null) return;
-            clients.forEach( clientHandler -> clientHandler.setReconnectionMSG("Reconnected, In the middle of a Game"));
+            clients.forEach(clientHandler -> clientHandler.setReconnectionMSG("Reconnected, In the middle of a Game"));
 
             gameThreadPool.execute(() -> {
-                Wrapper.withLock(()->this.clientsInGame.addAll(clients), this.gameLock);
+                Wrapper.withLock(() -> this.clientsInGame.addAll(clients), this.gameLock);
                 (new GameHandler(clients, this.clientQueue, this.PLAYER_PER_GAME, this.PLAY_TIMEOUT)).run();
-                Wrapper.withLock(()-> clients.forEach(this.clientsInGame::remove), this.gameLock);
+                Wrapper.withLock(() -> clients.forEach(this.clientsInGame::remove), this.gameLock);
             });
-       }
+        }
     }
 
+    /**
+     * Main server loop.
+     * Starts threads for authentication, game handling, cleanup, and pinging clients.
+     *
+     * @throws InterruptedException If the main thread is interrupted.
+     */
     public void main() throws InterruptedException {
         Thread authThread = Thread.ofVirtual().start(() -> {
             try {
@@ -127,8 +148,14 @@ public class Server {
         pingClientsThread.join();
     }
 
+    /**
+     * Handles the authentication of new clients.
+     * Accepts new client connections and starts a handler for each client.
+     *
+     * @throws IOException If an I/O error occurs.
+     */
     public void handleAuth() throws IOException {
-        
+
         while (true) {
             Socket clientSocket = serverSocket.accept();
             System.out.println("Client connected.");
@@ -144,12 +171,20 @@ public class Server {
         }
     }
 
+    /**
+     * Handles the creation of new games.
+     * Continuously checks for enough clients in the queue to start a game.
+     */
     public void handleGames() {
         while (true) {
             addGame();
         }
     }
 
+    /**
+     * Cleans up resources before the server shuts down.
+     * Saves the database, closes the server socket, and shuts down thread pools.
+     */
     public void cleanUp() {
         db.save();
         try {
@@ -161,8 +196,12 @@ public class Server {
         this.clientThreadPool.shutdown();
     }
 
+    /**
+     * Pings active clients to check their connection status.
+     * Removes clients that have not responded within the CLIENT_TIMEOUT period.
+     */
     public void pingActiveClients() {
-        while(true){
+        while (true) {
             System.out.println("[PING] All clients");
 
             long currTime = System.currentTimeMillis();
@@ -172,22 +211,7 @@ public class Server {
                 clientHandler.checkConnection();
                 return currTime - clientHandler.getLastSeen() >= CLIENT_TIMEOUT;
             });
-            
-
-            // TODO: remover de set?
-
             System.out.println("Queue size: " + this.clientQueue.size());
-
-            // this.clientQueue.forEach((clientHandler) -> {
-            //     clientHandler.checkConnection();
-            //     if (System.currentTimeMillis() - clientHandler.getLastSeen() >= CLIENT_TIMEOUT) {
-            //         this.clientQueue.remove(clientHandler); // TODO Use iterators for higher efficiency
-            //         System.out.println("Removed user");
-            //         System.out.println("Queue size: " + this.clientQueue.size());
-            //     }
-            // });
-
-            // Sleep 
             try {
                 Thread.sleep(PING_PERIOD);
             } catch (InterruptedException e) {

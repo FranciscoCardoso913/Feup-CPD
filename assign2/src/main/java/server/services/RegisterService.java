@@ -15,12 +15,23 @@ public class RegisterService {
     private Database db;
 
     protected final int registerTimeout;
-
+    /**
+     * Constructor for RegisterService.
+     *
+     * @param db            The database instance.
+     * @param configLoader  The configuration loader to fetch the timeout value.
+     */
     public RegisterService(Database db, ConfigLoader configLoader ){
         this.db = db;
         this.registerTimeout= Integer.parseInt( configLoader.get("AUTH_TIMEOUT"));
     }
-
+    /**
+     * Registers a new user.
+     *
+     * @param out The PrintWriter to send messages to the client.
+     * @param in  The BufferedReader to receive messages from the client.
+     * @return    The registered User object if registration is successful, otherwise null.
+     */
     public User registerUser (PrintWriter out, BufferedReader in){
         String username = "";
         try {
@@ -51,6 +62,11 @@ public class RegisterService {
         }
         return null;
     }
+    /**
+     * Handles timeout scenarios during registration.
+     *
+     * @param out The PrintWriter to send the timeout message to the client.
+     */
     public void handleTimeOut(PrintWriter out) {
         System.out.println("Time out");
         IO.writeMessage(out, "Register timed out. Please try again.", MessageType.MSG);

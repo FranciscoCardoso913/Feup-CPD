@@ -12,7 +12,12 @@ public class Database {
     private Set<User> users;
     private final ReentrantLock lock = new ReentrantLock();
 
-    public Database(String dbPath){
+    /**
+     * Constructor for the Database class.
+     *
+     * @param dbPath The path to the database file.
+     */
+    public Database(String dbPath) {
 
         this.dbPath = dbPath;
 
@@ -20,10 +25,9 @@ public class Database {
 
         File file = new File(this.dbPath);
 
-        if(file.exists()){
+        if (file.exists()) {
             this.loadUsers();
-        }
-        else{
+        } else {
             try {
                 file.createNewFile();
             } catch (IOException e) {
@@ -33,7 +37,10 @@ public class Database {
         }
     }
 
-    public void loadUsers(){
+    /**
+     * Loads users from the database file.
+     */
+    public void loadUsers() {
         try (BufferedReader reader = new BufferedReader(new FileReader(this.dbPath))) {
             String line;
             while ((line = reader.readLine()) != null) {
@@ -47,22 +54,30 @@ public class Database {
         }
     }
 
+    /**
+     * Registers a user in the database.
+     *
+     * @param user The user to be registered.
+     * @return True if the user is registered successfully, false otherwise.
+     */
     public boolean register(User user) {
         Integer size = this.users.size();
         lock.lock();
         try {
             this.users.add(user);
-        }
-        finally {
+        } finally {
             lock.unlock();
         }
         return !size.equals(this.users.size());
     }
 
-    public void save(){
+    /**
+     * Saves the users to the database file.
+     */
+    public void save() {
         lock.lock();
         try (FileWriter writer = new FileWriter(this.dbPath)) {
-            for(User user : this.users){
+            for (User user : this.users) {
                 writer.append(user.getName())
                         .append(",")
                         .append(user.getPassword())
@@ -79,7 +94,13 @@ public class Database {
         }
     }
 
-    public User findUserByName(String name){
+    /**
+     * Finds a user by their name in the database.
+     *
+     * @param name The name of the user to find.
+     * @return The user if found, null otherwise.
+     */
+    public User findUserByName(String name) {
         return users.stream()
                 .filter(u -> u.getName().equals(name))
                 .findFirst()
