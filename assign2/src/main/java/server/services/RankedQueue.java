@@ -54,14 +54,13 @@ public class RankedQueue extends ConcurrentQueue<ClientHandler> {
     public List<ClientHandler> popMultiple(int n) {
         if (!has(n)) return null;
 
-        List<ClientHandler> players = new ArrayList<ClientHandler>();
-        Map<Integer, Integer> guaranteedPlayerBins = new HashMap<Integer, Integer>();
+        List<ClientHandler> players = new ArrayList<>();
+        Map<Integer, Integer> guaranteedPlayerBins = new HashMap<>();
         int guaranteedPlayers = 0, connectedPlayers;
 
         try {
             queueLock.lock();
 
-            // TODO: Check correct bin for correct number of players
             Integer currBin = bins.get(currBinIdx);
             SimpleQueue currBinQueue = this.queue.get(bins.get(currBinIdx));
 
@@ -81,19 +80,58 @@ public class RankedQueue extends ConcurrentQueue<ClientHandler> {
             }
 
             // Get waiting time from player who waited the most from current queue
+            // TODO: Maybe get shortest wait and not longest?
             long longestWait = currBinQueue.getHeadWaitTime();
+            int binsExplored = 1;
 
-            // Look at bins that are next to the left and right until limit is surpassed.
-            do {
-                
-            } while (true);
+            Integer leftBin = currBinIdx - binsExplored > 0 ? this.bins.get(this.currBinIdx - binsExplored) : null;
+            Integer rightBin = currBinIdx + binsExplored < this.bins.size() - 1 ? this.bins.get(this.currBinIdx + binsExplored) : null;
 
-            // TODO: Check an amount of bins left/right depending on time spent waiting
+            while ((leftBin != null && System.currentTimeMillis() - longestWait <= (currBin - leftBin) * BIN_TIME) || rightBin != null && System.currentTimeMillis() - longestWait <= (rightBin - currBin)) {
+                if (leftBin != null) {
+                    SimpleQueue leftBinQueue = this.queue.get(leftBin);
+                    connectedPlayers = leftBinQueue.getConnected();
+
+                    if (connectedPlayers + guaranteedPlayers >= n) {
+                        guaranteedPlayerBins.forEach((k, v) -> {
+                            players.addAll(this.queue.get(k).popMultiple(v));
+                        });
+
+                        players.addAll(leftBinQueue.popMultiple(n - guaranteedPlayers));
+
+                        return players;
+                    }
+
+                    guaranteedPlayers += connectedPlayers;
+                    guaranteedPlayerBins.put(leftBin, connectedPlayers);
+                }
+
+                if (rightBin != null) {
+                    SimpleQueue rightBinQueue = this.queue.get(rightBin);
+                    connectedPlayers = rightBinQueue.getConnected();
+
+                    if (connectedPlayers + guaranteedPlayers >= n) {
+                        guaranteedPlayerBins.forEach((k, v) -> {
+                            players.addAll(this.queue.get(k).popMultiple(v));
+                        });
+
+                        players.addAll(rightBinQueue.popMultiple(n - guaranteedPlayers));
+
+                        return players;
+                    }
+
+                    guaranteedPlayers += connectedPlayers;
+                    guaranteedPlayerBins.put(rightBin, connectedPlayers);
+                }
+
+                binsExplored++;
+            }
         } finally {
+            currBinIdx++;
             queueLock.unlock();
         }
         
-        //return players;
+        return null;
     }
 
     @Override
