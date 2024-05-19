@@ -52,7 +52,7 @@ public class RankedQueue extends ConcurrentQueue<ClientHandler> {
 
     @Override
     public List<ClientHandler> popMultiple(int n) {
-        if (!has(n)) return null;
+        if (this.queue.isEmpty()) return null;
 
         List<ClientHandler> players = new ArrayList<>();
         Map<Integer, Integer> guaranteedPlayerBins = new HashMap<>();
@@ -84,10 +84,10 @@ public class RankedQueue extends ConcurrentQueue<ClientHandler> {
             long longestWait = currBinQueue.getHeadWaitTime();
             int binsExplored = 1;
 
-            Integer leftBin = currBinIdx - binsExplored > 0 ? this.bins.get(this.currBinIdx - binsExplored) : null;
-            Integer rightBin = currBinIdx + binsExplored < this.bins.size() - 1 ? this.bins.get(this.currBinIdx + binsExplored) : null;
+            Integer leftBin = currBinIdx - binsExplored >= 0 ? this.bins.get(this.currBinIdx - binsExplored) : null;
+            Integer rightBin = currBinIdx + binsExplored <= this.bins.size() - 1 ? this.bins.get(this.currBinIdx + binsExplored) : null;
 
-            while ((leftBin != null && System.currentTimeMillis() - longestWait <= (currBin - leftBin) * BIN_TIME) || rightBin != null && System.currentTimeMillis() - longestWait <= (rightBin - currBin)) {
+            while ((leftBin != null && longestWait >= (currBin - leftBin) * BIN_TIME) || (rightBin != null && longestWait >= (rightBin - currBin) * BIN_TIME)) {
                 if (leftBin != null) {
                     SimpleQueue leftBinQueue = this.queue.get(leftBin);
                     connectedPlayers = leftBinQueue.getConnected();
@@ -125,12 +125,14 @@ public class RankedQueue extends ConcurrentQueue<ClientHandler> {
                 }
 
                 binsExplored++;
+                leftBin = currBinIdx - binsExplored >= 0 ? this.bins.get(this.currBinIdx - binsExplored) : null;
+                rightBin = currBinIdx + binsExplored <= this.bins.size() - 1 ? this.bins.get(this.currBinIdx + binsExplored) : null;
             }
         } finally {
-            currBinIdx++;
+            currBinIdx = (currBinIdx + 1) % bins.size();
             queueLock.unlock();
         }
-        
+
         return null;
     }
 

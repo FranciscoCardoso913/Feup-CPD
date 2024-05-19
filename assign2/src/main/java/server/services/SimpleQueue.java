@@ -47,7 +47,7 @@ public class SimpleQueue extends ConcurrentQueue<ClientHandler> {
         System.out.println(n);
         // TODO: Check this, se tiver 1-2 pessoas nao ativos.
         System.out.println("Queue:"+ !this.has(this.PLAYER_PER_GAME));
-        if (!this.has(this.PLAYER_PER_GAME)) return null;
+        if (!this.has(n)) return null;
         List<ClientHandler> list = new ArrayList<>();
 
         try {

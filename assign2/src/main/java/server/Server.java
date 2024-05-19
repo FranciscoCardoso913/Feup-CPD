@@ -7,7 +7,7 @@ import java.util.concurrent.ExecutorService;
 import config.ConfigLoader;
 import server.database.Database;
 import server.services.ConcurrentQueue;
-// import server.services.RankedQueue;
+import server.services.RankedQueue;
 import server.services.SimpleQueue;
 import utils.Wrapper;
 
@@ -48,7 +48,7 @@ public class Server {
             this.db = new Database(config.get("DB_PATH"));
             this.clientQueue = switch (mode) {
                 case 0 -> new SimpleQueue(PLAYER_PER_GAME);
-                // case 1 -> new RankedQueue(PLAYER_PER_GAME);
+                case 1 -> new RankedQueue(PLAYER_PER_GAME);
                 default -> throw new IllegalStateException("Unexpected value: " + mode);
             };
             this.gameThreadPool = Executors.newVirtualThreadPerTaskExecutor();
@@ -65,6 +65,7 @@ public class Server {
     public void addClientHandler(Socket clientSocket) throws IOException {
         ClientHandler ch = new ClientHandler(clientSocket, db);
         ch.run();
+        ch.updateSessionStartTime();
         // TODO
         if (!ch.getUser().isEmpty()){
             boolean inGame = false;
@@ -75,7 +76,7 @@ public class Server {
                 }
             }
             if(!inGame){
-            
+
                 this.clientQueue.push(ch);
                 
                 System.out.print("In queue: ");
@@ -87,17 +88,17 @@ public class Server {
 
     // TODO: Maybe keep number of connected players for efficiency
     public void addGame() {
-        if (this.clientQueue.has(PLAYER_PER_GAME)) {
+       if (this.clientQueue.has(PLAYER_PER_GAME)) {
             List<ClientHandler> clients = clientQueue.popMultiple(PLAYER_PER_GAME);
             if (clients == null) return;
             clients.forEach( clientHandler -> clientHandler.setReconnectionMSG("Reconnected, In the middle of a Game"));
-            
+
             gameThreadPool.execute(() -> {
                 Wrapper.withLock(()->this.clientsInGame.addAll(clients), this.gameLock);
                 (new GameHandler(clients, this.clientQueue, this.PLAYER_PER_GAME, this.PLAY_TIMEOUT)).run();
                 Wrapper.withLock(()-> clients.forEach(this.clientsInGame::remove), this.gameLock);
             });
-        }
+       }
     }
 
     public void main() throws IOException, InterruptedException {
