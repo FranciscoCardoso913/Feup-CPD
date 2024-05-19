@@ -56,7 +56,7 @@ public class GameHandler implements Runnable{
                 informOtherPlayers();
                 String inputLine = Wrapper.readWithTimeout(
                         currentPlayer.in,
-                        10*1000,
+                        10,
                         this::randomMove
                 );
                 int move = Integer.parseInt(inputLine);
@@ -118,6 +118,7 @@ public class GameHandler implements Runnable{
                 this.clientQueue.push(cl);
                 cl.setReconnectionMSG("Reconnected, waiting in queue");
                 System.out.println("In queue again");
+                IO.writeMessage(cl.out,"You are waiting in queue again!",MessageType.MSG);
                 break;
             } else if (res.equals("n") || res.equals("N")) {
                 IO.writeMessage(cl.out, "QUIT", MessageType.QUIT);

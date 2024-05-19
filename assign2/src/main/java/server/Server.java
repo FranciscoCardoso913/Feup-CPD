@@ -35,10 +35,12 @@ public class Server {
     int PLAYER_PER_GAME;
     int PLAY_TIMEOUT;
     int PING_PERIOD;
+
+    private ConfigLoader configLoader;
     
     public Server(ConfigLoader config, int mode){
         try {
-
+            this.configLoader= config;
             int port = Integer.parseInt(config.get("SERVER_PORT"));
             this.serverSocket = new ServerSocket(port);
             this.CLIENT_TIMEOUT = Integer.parseInt(config.get("CLIENT_TIMEOUT"));
@@ -63,8 +65,9 @@ public class Server {
     }
 
     public void addClientHandler(Socket clientSocket) throws IOException {
-        ClientHandler ch = new ClientHandler(clientSocket, db);
+        ClientHandler ch = new ClientHandler(clientSocket, db, this.configLoader );
         ch.run();
+        if(ch.getUser()== null) return;
         ch.updateSessionStartTime();
         // TODO
         if (!ch.getUser().isEmpty()){
@@ -101,7 +104,7 @@ public class Server {
        }
     }
 
-    public void main() throws IOException, InterruptedException {
+    public void main() throws InterruptedException {
         Thread authThread = Thread.ofVirtual().start(() -> {
             try {
                 handleAuth();
