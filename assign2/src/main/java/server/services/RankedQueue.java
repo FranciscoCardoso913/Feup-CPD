@@ -24,13 +24,17 @@ public class RankedQueue extends ConcurrentQueue<ClientHandler> {
 
     @Override
     public void push(ClientHandler element) {
-        Integer bin = element.getUser().getScore() / BIN_SIZE;
+        int userScore = element.getUser().getScore();
+        Integer bin = userScore >= 0 ? userScore / BIN_SIZE : userScore / BIN_SIZE - 1;
+
+        System.out.println("CurrBinIdx Before: " + currBinIdx);
 
         try {
             // This operation needs a lock so that two different threads don't add a user from a new bin at the same time
             // which could result in the loss of a user in the queue
             queueLock.lock();
             if (!this.queue.containsKey(bin)) {
+                System.out.println("New bin: " + bin);
                 this.queue.put(bin, new SimpleQueue(this.PLAYER_PER_GAME));
 
                 if (this.currBinIdx < 0 || this.bins.get(this.currBinIdx) > bin)
@@ -42,7 +46,10 @@ public class RankedQueue extends ConcurrentQueue<ClientHandler> {
         } finally {
             queueLock.unlock();
         }
-        
+
+        System.out.println("CurrBinIdx After: " + currBinIdx);
+
+        System.out.println("Pushed player: " + element.getUser().getName() + " with score: " + element.getUser().getScore());
 
         this.queue.get(bin).push(element);
     }
