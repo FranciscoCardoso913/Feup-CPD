@@ -1,5 +1,6 @@
 package server;
 
+import config.ConfigLoader;
 import server.database.Database;
 import server.database.models.User;
 import server.services.AuthService;
@@ -25,12 +26,13 @@ public class ClientHandler implements Runnable {
     private String reconnectionMSG;
     public volatile PrintWriter out;
     public volatile BufferedReader in;
+    int INACTIVE_TIMEOUT;
 
-    public ClientHandler(Socket clientSocket, Database db) throws IOException {
+    public ClientHandler(Socket clientSocket, Database db, ConfigLoader configLoader) throws IOException {
         this.clientSocket = clientSocket;
-        this.registerService = new RegisterService(db);
-        this.authService = new AuthService(db);
-
+        this.INACTIVE_TIMEOUT = Integer.parseInt(configLoader.get("INACTIVE_TIMEOUT"));
+        this.registerService = new RegisterService(db, configLoader);
+        this.authService = new AuthService(db, configLoader);
         this.out = new PrintWriter(clientSocket.getOutputStream(), true);
         this.in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
         this.sessionStartTime = System.currentTimeMillis();
@@ -96,12 +98,12 @@ public class ClientHandler implements Runnable {
         try {
             boolean result = false;
             while(!result) {
-                IO.writeMessage(out, "[1]Login\n[2]Register\nChoose an option:", MessageType.REQUEST);
-                String inputLine = readMessage();
+                IO.writeMessage(out, "[1]Login\n[2]Register\n[3]Quit\nChoose an option:", MessageType.REQUEST);
+                String inputLine = Wrapper.readWithTimeout( in, INACTIVE_TIMEOUT, this::timeoutHandler);
                 result = switch (inputLine) {
                     case "1" -> authService();
                     case "2" -> registerService();
-                    case "quit" -> quit();
+                    case "3" -> quit();
                     default -> invalidOption();
                 };
             }
@@ -116,20 +118,12 @@ public class ClientHandler implements Runnable {
     }
 
     public boolean authService() throws Exception {
-            User res = Wrapper.withTimeOut(
-                    () -> this.authService.authUser(out, in),
-                    40,
-                    () -> this.authService.handleTimeOut(out)
-            );
+            User res = this.authService.authUser(out, in);
             this.setUser(res);
             return res != null;
     }
     public boolean registerService() throws Exception {
-        User res = Wrapper.withTimeOut(
-                ()->this.registerService.registerUser(out, in),
-                40,
-                ()-> this.registerService.handleTimeOut(out)
-        );
+        User res = this.registerService.registerUser(out, in);
         this.setUser(res);
         return res!=null;
     }
@@ -164,5 +158,11 @@ public class ClientHandler implements Runnable {
 
     public void setReconnectionMSG(String msg){
         this.reconnectionMSG = msg;
+    }
+
+    public String timeoutHandler(){
+        System.out.println("Client Disconnected");
+        IO.writeMessage(out, "Time Out!\nDisconnecting", MessageType.MSG);
+        return "3";
     }
 }

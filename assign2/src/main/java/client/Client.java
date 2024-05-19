@@ -41,7 +41,7 @@ public class Client {
                 System.out.println(serverMsg);
             }
             else if (response.isType(MessageType.REQUEST)){
-                System.out.println(serverMsg);
+                System.out.print(serverMsg);
                 while(true) {
                     userInput= null;
                     if (stdIn.ready()) userInput = stdIn.readLine();
