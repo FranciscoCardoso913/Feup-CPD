@@ -15,7 +15,6 @@ public class Main {
             """;
 
     public static void main(String[] args) throws IOException {
-        System.out.println(args[0]);
         if (
             args.length != 1 && !(args.length == 2 && args[0].equals("-s")) ||
             args.length == 1 && (args[0].equals("--help") || args[0].equals("-h"))
@@ -57,9 +56,12 @@ public class Main {
         try {
             String host = config.get("HOSTNAME");
             int port = Integer.parseInt(config.get("CLIENT_PORT"));
+
             new Client(host, port).main();
         } catch (NumberFormatException e) {
             System.out.println(usage);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 }

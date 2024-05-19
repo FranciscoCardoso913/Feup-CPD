@@ -6,6 +6,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Queue;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -43,22 +44,31 @@ public class SimpleQueue extends ConcurrentQueue<ClientHandler> {
     // TODO Add tolerance to disconnected players?
     @Override
     public List<ClientHandler> popMultiple(int n) {
+        System.out.println(n);
         // TODO: Check this, se tiver 1-2 pessoas nao ativos.
+        System.out.println("Queue:"+ !this.has(this.PLAYER_PER_GAME));
         if (!this.has(this.PLAYER_PER_GAME)) return null;
         List<ClientHandler> list = new ArrayList<>();
 
         try {
             this.queueLock.lock();
             int i = 0;
+            System.out.println("Fuck:"+this.queue.size());
             for (ClientHandler ch: this.queue) {
+                System.out.println("Boas");
                 if (ch.checkConnection()) {
+                    System.out.println("Boas con");
                     list.add(ch);
                     i++;
-                    this.queue.remove(ch);
+                    //this.queue.remove(ch);
                 }
+                System.out.println("Queue size:"+ this.queue.size());
 
                 if (i >= n) break;
             }
+            this.queue.removeAll(list);
+            System.out.println("I:" + this .queue.size());
+            System.out.println("Queue:" + list.size());
 
         } catch (Exception exception) {
             exception.printStackTrace();
@@ -76,16 +86,26 @@ public class SimpleQueue extends ConcurrentQueue<ClientHandler> {
 
     @Override
     public boolean has(int n) {
-        int connected = 0;
+        //System.out.println("sahsgdjgas");
+        try {
+            int connected = 0;
+            this.queueLock.lock();
+            for (ClientHandler ch : this.queue) {
+                //System.out.println("incr2");
+                if (ch.checkConnection()) {
+                    //System.out.println("incr");
+                    connected++;
+                }
+                if (connected >= n)
+                    break;
+            }
+            this.queueLock.unlock();
 
-        for (ClientHandler ch: this.queue) {
-            if (ch.checkConnection())
-                connected++;
-            if (connected >= n)
-                return true;
+            return connected >= n;
+        }catch (Exception e){
+            System.out.println("Ups");
+            throw e;
         }
-
-        return false;
     }
 
     @Override

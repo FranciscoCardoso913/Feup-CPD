@@ -16,25 +16,36 @@ public class RegisterService {
         this.db = db;
     }
 
-    public String registerUser (PrintWriter out, BufferedReader in, User user) throws IOException {
+    public User registerUser (PrintWriter out, BufferedReader in){
         String username = "";
+        try {
+            while (true) {
+                IO.writeMessage(out, "Insert your username:", MessageType.REQUEST);
+                username = in.readLine();
+                if (db.findUserByName(username) != null)
+                    IO.writeMessage(out, "Username already taken", MessageType.MSG);
+                else break;
+            }
 
-        while (true) {
-            IO.writeMessage(out, "Insert your username:", MessageType.REQUEST);
-            username = in.readLine();
-            if(db.findUserByName(username) != null) IO.writeMessage(out, "Username already taken", MessageType.MSG);
-            else break;
+            IO.writeMessage(out, "Insert your password:", MessageType.REQUEST);
+            String pass = in.readLine();
+            User tmpUser = new User(username, pass, 0);
+            boolean res = db.register(tmpUser);
+            if (res) {
+                db.save();
+                IO.writeMessage(out, "Register done with success", MessageType.MSG);
+                return tmpUser;
+            } else {
+                IO.writeMessage(out, "An error occur while registering", MessageType.MSG);
+                return null;
+            }
+        }catch (IOException e){
+            e.printStackTrace();
         }
-
-        IO.writeMessage(out, "Insert your password:", MessageType.REQUEST);
-        String pass = in.readLine();
-        User tmpUser = new User(username, pass,0);
-        boolean res = db.register(tmpUser);
-        if(res) db.save();
-
-        user.setName(tmpUser.getName());
-        user.setPassword(tmpUser.getPassword());
-        user.setScore(tmpUser.getScore());
-        return "Register done with success";
+        return null;
+    }
+    public void handleTimeOut(PrintWriter out) {
+        System.out.println("Time out");
+        IO.writeMessage(out, "Register timed out. Please try again.", MessageType.MSG);
     }
 }
