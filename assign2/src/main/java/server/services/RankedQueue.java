@@ -1,9 +1,6 @@
 package server.services;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -150,12 +147,18 @@ public class RankedQueue extends ConcurrentQueue<ClientHandler> {
     public boolean has(int n) {
         int clients = 0;
 
-        for (SimpleQueue sq: queue.values()) {
-            clients += sq.getConnected();
+        try {
+            queueLock.lock();
+            for (SimpleQueue sq: queue.values()) {
+                clients += sq.getConnected();
 
-            if (clients >= n)
-                return true;
+                if (clients >= n)
+                    return true;
+            }
+        } finally {
+            queueLock.unlock();
         }
+
 
         return false;
     }
@@ -191,6 +194,14 @@ public class RankedQueue extends ConcurrentQueue<ClientHandler> {
 
     @Override
     public void removeIf(Predicate<ClientHandler> condition) {
+        try {
+            queueLock.lock();
 
+            for (SimpleQueue sq: queue.values()) {
+                sq.removeIf(condition);
+            }
+        } finally {
+            queueLock.unlock();
+        }
     }
 }
