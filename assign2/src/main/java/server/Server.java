@@ -5,6 +5,8 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.ExecutorService;
 
 import config.ConfigLoader;
+import message.IO;
+import message.MessageType;
 import server.database.Database;
 import server.services.ConcurrentQueue;
 import server.services.RankedQueue;
@@ -81,6 +83,7 @@ public class Server {
             if(!inGame){
 
                 this.clientQueue.push(ch);
+                IO.writeMessage(ch.out, "Waiting in Queue for a Game!", MessageType.MSG);
                 
                 System.out.print("In queue: ");
                 System.out.print(this.clientQueue.size());

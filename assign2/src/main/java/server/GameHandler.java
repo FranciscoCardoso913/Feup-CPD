@@ -39,6 +39,7 @@ public class GameHandler implements Runnable{
             .append("\t- There are " + PLAYER_PER_GAME + " in this gamen");
         
         for (ClientHandler cl : clients){
+            IO.writeMessage(cl.out, "CLEAR", MessageType.CMD);
             IO.writeMessage(cl.out, initMessage.toString(), MessageType.MSG);
         }
     }
@@ -118,6 +119,7 @@ public class GameHandler implements Runnable{
                 this.clientQueue.push(cl);
                 cl.setReconnectionMSG("Reconnected, waiting in queue");
                 System.out.println("In queue again");
+                IO.writeMessage(cl.out, "CLEAR", MessageType.CMD);
                 IO.writeMessage(cl.out,"You are waiting in queue again!",MessageType.MSG);
                 break;
             } else if (res.equals("n") || res.equals("N")) {
