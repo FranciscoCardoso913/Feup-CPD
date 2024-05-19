@@ -41,7 +41,6 @@ public class SimpleQueue extends ConcurrentQueue<ClientHandler> {
         }
     }
 
-    // TODO Add tolerance to disconnected players?
     @Override
     public List<ClientHandler> popMultiple(int n) {
         System.out.println(n);
@@ -133,10 +132,16 @@ public class SimpleQueue extends ConcurrentQueue<ClientHandler> {
     public int getConnected() {
         int connected = 0;
 
-        for (ClientHandler ch: this.queue) {
-            if (ch.checkConnection())
-                connected++;
+        try {
+            this.queueLock.lock();
+            for (ClientHandler ch: this.queue) {
+                if (ch.checkConnection())
+                    connected++;
+            }
+        } finally {
+            this.queueLock.unlock();
         }
+
 
         return connected;
     }
