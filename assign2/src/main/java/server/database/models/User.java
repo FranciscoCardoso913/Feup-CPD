@@ -41,6 +41,7 @@ public class User {
 
     public void changeScore(int delta){
         this.score += delta;
+        if(this.score<0) this.score=0;
     }
 
     public boolean login( String password ) {

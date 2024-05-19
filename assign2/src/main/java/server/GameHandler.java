@@ -5,8 +5,10 @@ import message.MessageType;
 import server.database.models.Nim;
 import server.database.models.User;
 import server.services.ConcurrentQueue;
+import utils.Wrapper;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.Executors;
@@ -18,7 +20,7 @@ public class GameHandler implements Runnable{
 
     Nim game;
     List<ClientHandler> clients;
-    ConcurrentQueue<ClientHandler> clientQueue;
+    volatile ConcurrentQueue<ClientHandler> clientQueue;
     int playersPerGame;
     int playTimeOut;
 
@@ -28,8 +30,6 @@ public class GameHandler implements Runnable{
         this.clients = clients;
         this.clientQueue = clientQueue;
         this.playTimeOut = PLAY_TIMEOUT;
-
-        System.out.println("Game started!");
         
         StringBuilder initMessage = new StringBuilder()
             .append("Game started!\n")
@@ -45,45 +45,27 @@ public class GameHandler implements Runnable{
 
     public void run() {
         boolean run = true;
-        ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
         while (run) {
             try{
                 final ClientHandler currentPlayer = clients.get(game.getCurrentPlayer());
-                if(currentPlayer.checkConnection()){
-                    IO.writeMessage(currentPlayer.out, "Your turn! You have "+ this.playTimeOut +"s to play!" , MessageType.MSG);
-                    IO.writeMessage(currentPlayer.out, "Coins in the pile: " + game.getRemainingCoins(), MessageType.MSG);
-                    IO.writeMessage(currentPlayer.out, "Write number of coins: ", MessageType.REQUEST);
-                }
+                IO.writeMessage(currentPlayer.out, "Your turn! You have "+ this.playTimeOut +"s to play!" , MessageType.MSG);
+                IO.writeMessage(currentPlayer.out, "Coins in the pile: " + game.getRemainingCoins(), MessageType.MSG);
+                IO.writeMessage(currentPlayer.out, "Write number of coins: ", MessageType.REQUEST);
+
                 informOtherPlayers();
-
-                Runnable makeRandomMove = () -> {
-                    try {
-
-                        int randomMove = new Random().nextInt(2) + 1;
-
-                        IO.writeMessage(currentPlayer.out, "Time's up! Random move: " + randomMove, MessageType.MSG);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                };
-                scheduler.schedule(makeRandomMove, this.playTimeOut, TimeUnit.SECONDS);
-
-
-
-                String inputLine = currentPlayer.readMessage();
+                String inputLine = Wrapper.readWithTimeout(
+                        currentPlayer.in,
+                        10*1000,
+                        this::randomMove
+                );
                 int move = Integer.parseInt(inputLine);
                 int reminder_coins = game.move(move);
-
-                scheduler.shutdownNow();
-                scheduler = Executors.newScheduledThreadPool(1);
-
                 if (reminder_coins == -1) {
                     IO.writeMessage(currentPlayer.out, "Invalid number of coins taken: " + move, MessageType.MSG);
                     IO.writeMessage(currentPlayer.out, "Take 1 or 2 coins.", MessageType.MSG);
                     continue;
                 }
-
                 run = reminder_coins != -2;
             } catch (Exception e) {
                 e.printStackTrace();
@@ -91,7 +73,6 @@ public class GameHandler implements Runnable{
         }
 
         updateRanks();
-
         for (ClientHandler cl : clients){
             Thread.ofVirtual().start(() -> {
                 try {
@@ -112,7 +93,7 @@ public class GameHandler implements Runnable{
             User currUser = cl.getUser();
             
             if( !cl.checkConnection())
-                currUser.changeScore(-1);
+               currUser.changeScore(-1);
             else if (i != game.getCurrentPlayer()){
                 IO.writeMessage(cl.out, "You lost...", MessageType.MSG);
                 currUser.changeScore(-1);
@@ -125,14 +106,13 @@ public class GameHandler implements Runnable{
     }
 
     public void checkPlayAgain(ClientHandler cl) throws IOException {
-        if(!cl.checkConnection()){ 
+        if(!cl.checkConnection()){
             cl.close();
             return;
         }
         while (true) {
             IO.writeMessage(cl.out, "Do you want to play again? (Y/n)", MessageType.REQUEST);
             String res = cl.readMessage();
-
             if (res.equals("y") || res.equals("Y") || res.isEmpty()) {
                 cl.updateSessionStartTime();
                 this.clientQueue.push(cl);
@@ -140,7 +120,6 @@ public class GameHandler implements Runnable{
                 break;
             } else if (res.equals("n") || res.equals("N")) {
                 IO.writeMessage(cl.out, "QUIT", MessageType.QUIT);
-                System.out.println("Exited?");
                 break;
             }
         }
@@ -156,6 +135,20 @@ public class GameHandler implements Runnable{
                 IO.writeMessage(cl.out, user.getName()+ " turn!", MessageType.MSG);
                 IO.writeMessage(cl.out, "Coins in the pile: " + game.getRemainingCoins(), MessageType.MSG);
             }
+        }
+    }
+
+    public String randomMove(){
+        try {
+            final ClientHandler currentPlayer = clients.get(game.getCurrentPlayer());
+
+            int randomMove = new Random().nextInt(2) + 1;
+
+            IO.writeMessage(currentPlayer.out, "Time's up! Random move: " + randomMove, MessageType.MSG);
+            return String.valueOf(randomMove);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "1";
         }
     }
 }

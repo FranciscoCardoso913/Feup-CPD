@@ -23,8 +23,8 @@ public class ClientHandler implements Runnable {
     
     private long lastSeen;
     private String reconnectionMSG;
-    public PrintWriter out;
-    public BufferedReader in;
+    public volatile PrintWriter out;
+    public volatile BufferedReader in;
 
     public ClientHandler(Socket clientSocket, Database db) throws IOException {
         this.clientSocket = clientSocket;
@@ -78,12 +78,18 @@ public class ClientHandler implements Runnable {
         return clientSocket;
     }
 
-    public String readMessage() throws IOException {
+    public String readMessage(){
         String inputLine;
-        while ((inputLine = in.readLine()) == null) {}
+        try {
+            while ((inputLine = in.readLine()) == null) {}
 
-        System.out.println("Client: " + inputLine);
-        return inputLine;
+            System.out.println("Client: " + inputLine);
+            return inputLine;
+        }catch (IOException e){
+            e.printStackTrace();
+        }
+        return null;
+
     }
 
     public void run() {
@@ -113,7 +119,7 @@ public class ClientHandler implements Runnable {
             User res = Wrapper.withTimeOut(
                     () -> this.authService.authUser(out, in),
                     40,
-                    ()-> this.authService.handleTimeOut(out)
+                    () -> this.authService.handleTimeOut(out)
             );
             this.setUser(res);
             return res != null;
