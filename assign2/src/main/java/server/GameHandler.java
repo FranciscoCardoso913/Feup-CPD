@@ -116,6 +116,7 @@ public class GameHandler implements Runnable{
             if (res.equals("y") || res.equals("Y") || res.isEmpty()) {
                 cl.updateSessionStartTime();
                 this.clientQueue.push(cl);
+                cl.setReconnectionMSG("Reconnected, waiting in queue");
                 System.out.println("In queue again");
                 break;
             } else if (res.equals("n") || res.equals("N")) {

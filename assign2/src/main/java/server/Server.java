@@ -9,7 +9,6 @@ import server.database.Database;
 import server.services.ConcurrentQueue;
 // import server.services.RankedQueue;
 import server.services.SimpleQueue;
-import server.GameHandler;
 import utils.Wrapper;
 
 import java.io.*;
@@ -88,12 +87,10 @@ public class Server {
 
     // TODO: Maybe keep number of connected players for efficiency
     public void addGame() {
-        //System.out.println(this.clientQueue.has(PLAYER_PER_GAME));
         if (this.clientQueue.has(PLAYER_PER_GAME)) {
-            System.out.println("dfsdjf");
             List<ClientHandler> clients = clientQueue.popMultiple(PLAYER_PER_GAME);
             if (clients == null) return;
-            System.out.println("Game:" + clients.size());
+            clients.forEach( clientHandler -> clientHandler.setReconnectionMSG("Reconnected, In the middle of a Game"));
             
             gameThreadPool.execute(() -> {
                 Wrapper.withLock(()->this.clientsInGame.addAll(clients), this.gameLock);
