@@ -3,6 +3,7 @@ package client;
 import message.IO;
 import message.Message;
 import message.MessageType;
+import server.Server;
 import utils.Wrapper;
 
 import java.io.*;
@@ -13,12 +14,15 @@ public class Client {
 
     private String host;
     private int port;
-    private volatile Socket socket;
-   // private volatile BufferedReader stdIn;
 
     public Client (String host, int port){
         this.host = host;
         this.port = port;
+    }
+
+    public void clearScreen(){
+        System.out.print("\033[H\033[2J");
+        System.out.flush();
     }
 
     public void main() throws Exception {
@@ -34,14 +38,15 @@ public class Client {
         while (true) {
             Message response = IO.readServerMsg(in);
             serverMsg = response.getBody();
-            if (response.isType(MessageType.QUIT)) {
+            if (response.isType(MessageType.QUIT) ) {
                 break;
-            }
-            else if (response.isType(MessageType.MSG)) {
+            } else if (response.isType(MessageType.CMD)) {
+                clearScreen();
+            } else if (response.isType(MessageType.MSG)) {
                 System.out.println(serverMsg);
             }
             else if (response.isType(MessageType.REQUEST)){
-                System.out.println(serverMsg);
+                System.out.print(serverMsg);
                 while(true) {
                     userInput= null;
                     if (stdIn.ready()) userInput = stdIn.readLine();

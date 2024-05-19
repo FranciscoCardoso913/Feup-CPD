@@ -5,6 +5,8 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.ExecutorService;
 
 import config.ConfigLoader;
+import message.IO;
+import message.MessageType;
 import server.database.Database;
 import server.services.ConcurrentQueue;
 import server.services.RankedQueue;
@@ -35,10 +37,12 @@ public class Server {
     int PLAYER_PER_GAME;
     int PLAY_TIMEOUT;
     int PING_PERIOD;
+
+    private ConfigLoader configLoader;
     
     public Server(ConfigLoader config, int mode){
         try {
-
+            this.configLoader= config;
             int port = Integer.parseInt(config.get("SERVER_PORT"));
             this.serverSocket = new ServerSocket(port);
             this.CLIENT_TIMEOUT = Integer.parseInt(config.get("CLIENT_TIMEOUT"));
@@ -63,8 +67,9 @@ public class Server {
     }
 
     public void addClientHandler(Socket clientSocket) throws IOException {
-        ClientHandler ch = new ClientHandler(clientSocket, db);
+        ClientHandler ch = new ClientHandler(clientSocket, db, this.configLoader );
         ch.run();
+        if(ch.getUser()== null) return;
         ch.updateSessionStartTime();
         // TODO
         if (!ch.getUser().isEmpty()){
@@ -78,6 +83,7 @@ public class Server {
             if(!inGame){
 
                 this.clientQueue.push(ch);
+                IO.writeMessage(ch.out, "Waiting in Queue for a Game!", MessageType.MSG);
                 
                 System.out.print("In queue: ");
                 System.out.print(this.clientQueue.size());
@@ -101,7 +107,7 @@ public class Server {
        }
     }
 
-    public void main() throws IOException, InterruptedException {
+    public void main() throws InterruptedException {
         Thread authThread = Thread.ofVirtual().start(() -> {
             try {
                 handleAuth();
