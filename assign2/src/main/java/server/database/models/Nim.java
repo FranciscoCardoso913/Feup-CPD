@@ -12,7 +12,7 @@ public class Nim {
      *
      * @param nPlayers The number of players in the game.
      */
-    public Nim(int nPlayers) {
+    public Nim(int nPlayers, int coins) {
         Random random = new Random();
         this.nPlayers = nPlayers;
         int lowerBound = this.nPlayers * 8 - 7;
@@ -21,7 +21,7 @@ public class Nim {
         this.currentPlayer = 0;
 
         // Clean
-        this.coins = 5;
+        this.coins = coins;
     }
 
     /**

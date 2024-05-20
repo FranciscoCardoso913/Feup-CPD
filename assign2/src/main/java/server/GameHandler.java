@@ -1,5 +1,6 @@
 package server;
 
+import config.ConfigLoader;
 import message.IO;
 import message.MessageType;
 import server.database.models.Nim;
@@ -26,11 +27,13 @@ public class GameHandler implements Runnable {
      *
      * @param clients         The list of clients participating in the game.
      * @param clientQueue     The queue of clients waiting to play.
-     * @param PLAYER_PER_GAME The number of players per game.
-     * @param PLAY_TIMEOUT    The timeout period for each player's move.
+     * @param configLoader    Configuration of the game
      */
-    public GameHandler(List<ClientHandler> clients, ConcurrentQueue<ClientHandler> clientQueue, int PLAYER_PER_GAME, int PLAY_TIMEOUT) {
-        this.game = new Nim(PLAYER_PER_GAME);
+    public GameHandler(List<ClientHandler> clients, ConcurrentQueue<ClientHandler> clientQueue, ConfigLoader configLoader) {
+        int PLAYER_PER_GAME= Integer.parseInt( configLoader.get("PLAYER_PER_GAME"));
+        int PLAY_TIMEOUT= Integer.parseInt( configLoader.get("PLAY_TIMEOUT"));
+        int COINS = Integer.parseInt( configLoader.get("COINS_PER_GAME"));
+        this.game = new Nim(PLAYER_PER_GAME, COINS);
         this.playersPerGame = PLAYER_PER_GAME;
         this.clients = clients;
         this.clientQueue = clientQueue;

@@ -116,7 +116,7 @@ public class Server {
 
             gameThreadPool.execute(() -> {
                 Wrapper.withLock(() -> this.clientsInGame.addAll(clients), this.gameLock);
-                (new GameHandler(clients, this.clientQueue, this.PLAYER_PER_GAME, this.PLAY_TIMEOUT)).run();
+                (new GameHandler(clients, this.clientQueue, configLoader)).run();
                 Wrapper.withLock(() -> clients.forEach(this.clientsInGame::remove), this.gameLock);
             });
         }
