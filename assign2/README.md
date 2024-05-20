@@ -1,7 +1,5 @@
 ## How to run
 
-### Configuration
-You can set configuration settings in `src/config.properties`
 
 ### Building the Project
 To build the project, run the following command from the root of the project:
