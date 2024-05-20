@@ -1,8 +1,6 @@
 package server;
 
-import java.util.concurrent.Executors;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.concurrent.ExecutorService;
 
 import config.ConfigLoader;
 import message.IO;
@@ -29,8 +27,6 @@ public class Server {
 
     protected final ReentrantLock gameLock = new ReentrantLock();
     ServerSocket serverSocket = null;
-    ExecutorService gameThreadPool;
-    ExecutorService clientThreadPool;
 
     // Env values
     int CLIENT_TIMEOUT;
@@ -62,8 +58,6 @@ public class Server {
                 case 1 -> new RankedQueue(PLAYER_PER_GAME);
                 default -> throw new IllegalStateException("Unexpected value: " + mode);
             };
-            this.gameThreadPool = Executors.newVirtualThreadPerTaskExecutor();
-            this.clientThreadPool = Executors.newVirtualThreadPerTaskExecutor();
 
             this.clientsInGame = new HashSet<>();
 
@@ -143,7 +137,7 @@ public class Server {
             System.out.println("Client connected.");
 
             // Start a new thread to handle the client
-            this.clientThreadPool.execute(() -> {
+            Thread.ofVirtual().start(() -> {
                 try {
                     addClientHandler(clientSocket);
                 } catch (IOException e) {
@@ -161,13 +155,14 @@ public class Server {
         while (true) {
             if (this.clientQueue.has(PLAYER_PER_GAME)) {
                 List<ClientHandler> clients = clientQueue.popMultiple(PLAYER_PER_GAME);
-                if (clients == null) return;
+                if (clients == null) continue;
                 clients.forEach(clientHandler -> clientHandler.setReconnectionMSG("Reconnected, In the middle of a Game"));
-    
-                gameThreadPool.execute(() -> {
+
+                Thread.ofVirtual().start(() -> {
                     Wrapper.withLock(() -> this.clientsInGame.addAll(clients), this.gameLock);
                     (new GameHandler(clients, this.clientQueue, configLoader)).run();
                     Wrapper.withLock(() -> clients.forEach(this.clientsInGame::remove), this.gameLock);
+                    this.db.save();
                 });
             }
         }
@@ -184,8 +179,6 @@ public class Server {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        this.gameThreadPool.shutdown();
-        this.clientThreadPool.shutdown();
     }
 
     /**

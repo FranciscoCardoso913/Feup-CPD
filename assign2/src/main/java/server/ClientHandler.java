@@ -210,8 +210,8 @@ public class ClientHandler implements Runnable {
                 return true;
             }
         } catch (IOException e) {
-            System.out.println("IOException when pinging client");
-            e.printStackTrace();
+            System.out.println("Client not connected");
+            return false;
         }
 
         return false;
