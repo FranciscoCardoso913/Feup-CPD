@@ -75,6 +75,15 @@ public class Client {
         socket.close();
     }
 
+    /**
+     * Processes incoming messages from the server based on their type.
+     * 
+     * @param response  The message from the server.
+     * @param out       The PrintWriter object used to send to the server.
+     * @param stdIn     The BufferedReader to read input from console.
+     * @param in        The BufferedReader to read messages from the server.
+     * @throws IOException  If an I/O error occurs
+     */
     private void processMessage(Message response, PrintWriter out, BufferedReader stdIn, BufferedReader in) throws IOException {
         String serverMsg = response.getBody();
 
@@ -99,6 +108,14 @@ public class Client {
         }
     }
 
+    /**
+     * Handles user input from the standard input (console) and sends it to the server.
+     * 
+     * @param out       The PrintWriter object used to send the user input to the server.
+     * @param stdIn     The BufferedReader used to read the user input from the console.
+     * @param in        The BufferedReader arrived from the server.
+     * @throws IOException  If an I/O error occurs during reading
+     */
     private void handleUserInput(PrintWriter out, BufferedReader stdIn, BufferedReader in) throws IOException {
         String userInput = null;
 

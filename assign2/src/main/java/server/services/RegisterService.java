@@ -25,6 +25,7 @@ public class RegisterService {
         this.db = db;
         this.registerTimeout= Integer.parseInt( configLoader.get("AUTH_TIMEOUT"));
     }
+
     /**
      * Registers a new user.
      *
@@ -39,6 +40,7 @@ public class RegisterService {
                 IO.writeMessage(out, "Insert your username:", MessageType.REQUEST);
                 username =  Wrapper.readWithTimeout(in, registerTimeout, ()->this.handleTimeOut(out));
                 if(username==null) return null;
+                if(username.isEmpty()) return null;
                 if (db.findUserByName(username) != null)
                     IO.writeMessage(out, "Username already taken", MessageType.MSG);
                 else break;
@@ -47,6 +49,7 @@ public class RegisterService {
             IO.writeMessage(out, "Insert your password:", MessageType.REQUEST);
             String pass = Wrapper.readWithTimeout(in, registerTimeout, ()->this.handleTimeOut(out));
             if(pass==null) return null;
+            if(pass.isEmpty()) return null;
             User tmpUser = new User(username, pass, 0);
             boolean res = db.register(tmpUser);
             if (res) {
