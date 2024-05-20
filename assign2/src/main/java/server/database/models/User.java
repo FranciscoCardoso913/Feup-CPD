@@ -1,9 +1,7 @@
 package server.database.models;
-import server.Server;
 import utils.Security;
 
 import java.util.Objects;
-import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 public class User {
     private String name = null;

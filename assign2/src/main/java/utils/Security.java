@@ -6,14 +6,16 @@ import java.security.NoSuchAlgorithmException;
 
 public class Security {
 
+    private static final String HASH_ALGORITHM = "SHA-256";
+
     /**
      * Hashes a message using SHA-256
      *
      * @param msg Message to hash
-     * @return Hashed message
+     * @return The hashed message as a hexadecimal string.
      */
     public static String hash(String msg) throws NoSuchAlgorithmException {
-        MessageDigest algorithm = MessageDigest.getInstance("SHA-256");
+        MessageDigest algorithm = MessageDigest.getInstance(HASH_ALGORITHM);
         byte[] messageDigest = algorithm.digest(msg.getBytes(StandardCharsets.UTF_8));
 
         StringBuilder hexString = new StringBuilder();

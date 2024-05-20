@@ -6,28 +6,25 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
 
 public class Wrapper {
+
+    private static final long MILLIS_IN_SECOND = 1000L;
+
     /**
      * Reads a line from the provided BufferedReader with a timeout.
      * If the read operation does not complete within the specified time,
      * it calls the provided timeOutHandler and returns its result.
      *
      * @param in             The BufferedReader to read from.
-     * @param Time           The timeout period in seconds.
+     * @param time           The timeout period in seconds.
      * @param timeOutHandler A Supplier that provides a default value when a timeout occurs.
      * @return The line read from the BufferedReader, or the result from timeOutHandler if timed out.
      * @throws IOException If an I/O error occurs.
      */
-    public static String readWithTimeout(BufferedReader in, int Time, Supplier<String> timeOutHandler) throws IOException {
-        String userInput;
-        long startTime = System.currentTimeMillis();
-        while (System.currentTimeMillis() - startTime < Time * 1000L) {
-            if (in.ready()) {
-                userInput = in.readLine();
-                return userInput;
-            }
+    public static String readWithTimeout(BufferedReader in, int time, Supplier<String> timeOutHandler) throws IOException {
+        if (waitForReady(in, time)) {
+            return in.readLine();
         }
-        userInput = timeOutHandler.get();
-        return userInput;
+        return timeOutHandler.get();
     }
 
     /**
@@ -36,22 +33,34 @@ public class Wrapper {
      * it calls the provided timeOutHandler Runnable.
      *
      * @param in             The BufferedReader to read from.
-     * @param Time           The timeout period in seconds.
+     * @param time           The timeout period in seconds.
      * @param timeOutHandler A Runnable that handles timeout events.
      * @return The line read from the BufferedReader, or null if timed out.
      * @throws IOException If an I/O error occurs.
      */
-    public static String readWithTimeout(BufferedReader in, int Time, Runnable timeOutHandler) throws IOException {
-        String userInput;
-        long startTime = System.currentTimeMillis();
-        while (System.currentTimeMillis() - startTime < Time * 1000L) {
-            if (in.ready()) {
-                userInput = in.readLine();
-                return userInput;
-            }
+    public static String readWithTimeout(BufferedReader in, int time, Runnable timeOutHandler) throws IOException {
+        if (waitForReady(in, time)) {
+            return in.readLine();
         }
         timeOutHandler.run();
         return null;
+    }
+
+    /**
+     * Waits until the BufferedReader is ready to be read or the timeout expires.
+     *
+     * @param in   The BufferedReader to monitor.
+     * @param time The timeout in seconds.
+     * @return true if the BufferedReader is ready, false if timed out.
+     */
+    private static boolean waitForReady(BufferedReader in, int time) throws IOException {
+        long startTime = System.currentTimeMillis();
+        while (System.currentTimeMillis() - startTime < time * MILLIS_IN_SECOND) {
+            if (in.ready()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -69,5 +78,4 @@ public class Wrapper {
             actionLocker.unlock();
         }
     }
-
 }

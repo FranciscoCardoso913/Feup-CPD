@@ -4,6 +4,7 @@ package message;
  * Class representing a message with a header and body.
  */
 public class Message {
+
     private MessageType header;
     private String body;
 
@@ -44,5 +45,14 @@ public class Message {
      */
     public boolean isType(MessageType type) {
         return type.getType().equals(header.getType());
+    }
+
+    /**
+     * Retrieves the type of the message.
+     * 
+     * @return The MessageType enumeration value.
+     */
+    public MessageType getType() {
+        return header;
     }
 }

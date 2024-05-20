@@ -105,24 +105,6 @@ public class Server {
     }
 
     /**
-     * Adds a new game if there are enough clients in the queue.
-     * Creates a new GameHandler for the clients.
-     */
-    public void addGame() {
-        if (this.clientQueue.has(PLAYER_PER_GAME)) {
-            List<ClientHandler> clients = clientQueue.popMultiple(PLAYER_PER_GAME);
-            if (clients == null) return;
-            clients.forEach(clientHandler -> clientHandler.setReconnectionMSG("Reconnected, In the middle of a Game"));
-
-            gameThreadPool.execute(() -> {
-                Wrapper.withLock(() -> this.clientsInGame.addAll(clients), this.gameLock);
-                (new GameHandler(clients, this.clientQueue, configLoader)).run();
-                Wrapper.withLock(() -> clients.forEach(this.clientsInGame::remove), this.gameLock);
-            });
-        }
-    }
-
-    /**
      * Main server loop.
      * Starts threads for authentication, game handling, cleanup, and pinging clients.
      *
@@ -138,7 +120,7 @@ public class Server {
         });
         Thread gameThread = Thread.ofVirtual().start(() -> handleGames());
         Thread cleanUpThread = new Thread(() -> cleanUp());
-        Thread pingClientsThread = Thread.ofVirtual().start(() -> pingActiveClients()); // this::pingActiveClients
+        Thread pingClientsThread = Thread.ofVirtual().start(() -> pingActiveClients());
         Runtime.getRuntime().addShutdownHook(cleanUpThread);
 
         System.out.println("Server started");
@@ -172,12 +154,22 @@ public class Server {
     }
 
     /**
-     * Handles the creation of new games.
-     * Continuously checks for enough clients in the queue to start a game.
+     * Adds a new game if there are enough clients in the queue.
+     * Creates a new GameHandler for the clients.
      */
     public void handleGames() {
         while (true) {
-            addGame();
+            if (this.clientQueue.has(PLAYER_PER_GAME)) {
+                List<ClientHandler> clients = clientQueue.popMultiple(PLAYER_PER_GAME);
+                if (clients == null) return;
+                clients.forEach(clientHandler -> clientHandler.setReconnectionMSG("Reconnected, In the middle of a Game"));
+    
+                gameThreadPool.execute(() -> {
+                    Wrapper.withLock(() -> this.clientsInGame.addAll(clients), this.gameLock);
+                    (new GameHandler(clients, this.clientQueue, configLoader)).run();
+                    Wrapper.withLock(() -> clients.forEach(this.clientsInGame::remove), this.gameLock);
+                });
+            }
         }
     }
 

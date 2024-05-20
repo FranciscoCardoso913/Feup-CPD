@@ -8,6 +8,10 @@ import java.io.PrintWriter;
  * Utility class for input/output operations related to messaging.
  */
 public class IO {
+
+    private static final char MESSAGE_DELIMITER = '\0';
+    private static final String LINE_SEPARATOR = "\n";
+
     /**
      * Writes a message to the PrintWriter.
      *
@@ -16,7 +20,7 @@ public class IO {
      * @param type The type of the message (MessageType enum).
      */
     public static void writeMessage(PrintWriter out, String msg, MessageType type) {
-        out.println(type.getType() + "\n" + msg + "\0");
+        out.println(type.getType() + LINE_SEPARATOR + msg + MESSAGE_DELIMITER);
     }
 
     /**
@@ -38,7 +42,7 @@ public class IO {
                 if (serverOut != null) {
                     char[] charArray = serverOut.toCharArray();
                     for (char c : charArray) {
-                        if (c == '\0') {
+                        if (c == MESSAGE_DELIMITER) {
                             end = true;
                             break;
                         }
@@ -52,4 +56,3 @@ public class IO {
         return new Message(header, serverMsg);
     }
 }
-

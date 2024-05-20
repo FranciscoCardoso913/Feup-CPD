@@ -38,40 +38,65 @@ public class Client {
      * @throws Exception if an error occurs during execution.
      */
     public void main() throws Exception {
-        System.out.println("Connecting to server");
+        System.out.println("Connecting to server...");
         Socket socket = new Socket(host, port);
-        System.out.println("Connected");
+        System.out.println("Connected to server.");
         PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
         BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-
         BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
-        String userInput;
-        String serverMsg;
+
         while (true) {
             Message response = IO.readServerMsg(in);
-            serverMsg = response.getBody();
             if (response.isType(MessageType.QUIT)) {
                 break;
-            } else if (response.isType(MessageType.CMD)) {
-                clearScreen();
-            } else if (response.isType(MessageType.MSG)) {
-                System.out.println(serverMsg);
-            } else if (response.isType(MessageType.REQUEST)) {
-                System.out.print(serverMsg);
-                while (true) {
-                    userInput = null;
-                    if (stdIn.ready()) userInput = stdIn.readLine();
-                    if (userInput != null || in.ready())
-                        break;
-                }
-                if (userInput != null) out.println(userInput);
-            } else if (response.isType(MessageType.PING)) {
-                out.println("ping");
             }
+            processMessage(response, out, stdIn, in);
         }
+
         out.close();
         in.close();
         stdIn.close();
         socket.close();
+    }
+
+    private void processMessage(Message response, PrintWriter out, BufferedReader stdIn, BufferedReader in) throws IOException {
+        String serverMsg = response.getBody();
+
+        switch (response.getType()) {
+            case QUIT:
+                break;
+            case CMD:
+                clearScreen();
+                break;
+            case MSG:
+                System.out.println(serverMsg);
+                break;
+            case REQUEST:
+                System.out.print(serverMsg);
+                handleUserInput(out, stdIn, in);
+                break;
+            case PING:
+                out.println("ping");
+                break;
+            default:
+                break;
+        }
+    }
+
+    private void handleUserInput(PrintWriter out, BufferedReader stdIn, BufferedReader in) throws IOException {
+        String userInput = null;
+
+        while (true) {
+            userInput = null;
+
+            if (stdIn.ready()) {
+                userInput = stdIn.readLine();
+            }
+
+            if (in.ready() || userInput != null) {
+                break;
+            }
+        }
+        if (userInput != null) out.println(userInput);
     }
 }
