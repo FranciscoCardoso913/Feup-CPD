@@ -38,8 +38,24 @@ public class Client {
      * @throws Exception if an error occurs during execution.
      */
     public void main() throws Exception {
+        boolean sentMesage = false;
+
         System.out.println("Connecting to server");
-        Socket socket = new Socket(host, port);
+
+        Socket socket = null;
+
+        while (socket == null) {
+
+            try {
+                socket = new Socket(host, port);
+            } catch (ConnectException e) {
+                if (!sentMesage) {
+                    System.out.println("Server is not currently up");
+                    sentMesage = true;
+                }
+            }
+        }
+
         System.out.println("Connected");
         PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
         BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
